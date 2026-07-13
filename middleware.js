@@ -2,6 +2,13 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
 export async function middleware(request) {
+  if (request.headers.get("host") === "www.rentclock.com") {
+    const url = request.nextUrl.clone();
+    url.protocol = "https:";
+    url.host = "rentclock.com";
+    return NextResponse.redirect(url, 308);
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -50,5 +57,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/data/:path*", "/api/docs/:path*", "/login"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
