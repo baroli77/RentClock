@@ -62,6 +62,7 @@ export default function Landing() {
               <Link href="/login" className="btn brass">Start your 14-day free trial</Link>
               <Link href="/login" className="home-v2-sign-in">Already have an account? Sign in</Link>
             </div>
+            <p className="home-v2-stakes">Up to £40,000 at stake for some landlord offences.</p>
             <p className="home-v2-note">Card required · £5.99/month or £59.90/year · cancel before day 14 to pay nothing</p>
           </div>
           <aside className="home-v2-ledger" aria-label="Example RentClock deadline ledger">
