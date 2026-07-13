@@ -711,3 +711,12 @@ input[type="checkbox"] {
 .home-v2-sign-in:hover { color: var(--ink); }
 .home-v2-why .home-v2-sign-in { color: #d3dfe6; }
 @media (max-width: 760px) { .home-v2-hero-actions { gap: 12px; } }
+
+
+.billing-card { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 16px 0 20px; padding: 12px 14px; border-left: 3px solid var(--line); color: var(--grey); }
+.billing-card p { margin: 2px 0 0; font-size: 13px; }
+.billing-label { color: var(--grey); font: 600 10px 'IBM Plex Mono', monospace; letter-spacing: .1em; text-transform: uppercase; }
+.billing-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex-shrink: 0; }
+.billing-link { appearance: none; border: 0; background: none; padding: 0; color: var(--brass); cursor: pointer; font: 600 13px 'IBM Plex Sans', sans-serif; text-decoration: underline; text-underline-offset: 3px; }
+.billing-link:hover { color: var(--ink); }
+@media (max-width: 760px) { .billing-card { align-items: flex-start; flex-direction: column; gap: 8px; } }
