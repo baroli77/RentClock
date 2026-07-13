@@ -644,3 +644,6 @@ input[type="checkbox"] {
 .legal-page a { color: var(--brass); }
 .legal-updated { color: var(--grey) !important; font-size: 13px !important; }
 .contact-page { min-height: 42vh; }
+
+
+.legal-page + .foot { max-width: 68ch; margin-left: auto; margin-right: auto; }
