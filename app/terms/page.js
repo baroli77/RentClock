@@ -38,7 +38,7 @@ export default function TermsPage() {
         <p>To the extent permitted by law, RentClock is provided without guarantees that it will be uninterrupted, error-free or suitable for a particular purpose. Nothing in these terms limits liability that cannot legally be limited or excluded.</p>
 
         <h2>Contact</h2>
-        <p>Questions about these terms can be sent to <a href="mailto:obarton77@gmail.com">obarton77@gmail.com</a>.</p>
+        <p>Questions about these terms can be sent to <a href="mailto:support@rentclock.com">support@rentclock.com</a>.</p>
       </main>
       <Footer />
     </div>
