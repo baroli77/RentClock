@@ -632,3 +632,15 @@ input[type="checkbox"] {
   .brand-logo { height: 36px; }
   .landing-logo-wrap { padding: 2px 0 18px; }
 }
+
+
+.foot-links { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+.foot-links a { color: inherit; }
+.legal-page { max-width: 68ch; margin: 0 auto; }
+.legal-page h1, .legal-page h2 { font-family: 'Bricolage Grotesque', sans-serif; }
+.legal-page h1 { font-size: clamp(28px, 5vw, 40px); margin: 8px 0 4px; letter-spacing: -0.02em; }
+.legal-page h2 { font-size: 21px; margin: 28px 0 8px; }
+.legal-page p { color: #333b47; font-size: 15px; line-height: 1.65; }
+.legal-page a { color: var(--brass); }
+.legal-updated { color: var(--grey) !important; font-size: 13px !important; }
+.contact-page { min-height: 42vh; }
