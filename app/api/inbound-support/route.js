@@ -16,8 +16,8 @@ function plainTextFallback(value) {
 }
 
 export async function POST(request) {
-  const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
-  const apiKey = process.env.RESEND_API_KEY;
+  const webhookSecret = process.env.RESEND_WEBHOOK_SECRET?.trim();
+  const apiKey = process.env.RESEND_API_KEY?.trim();
 
   if (!webhookSecret || !apiKey) {
     return Response.json({ error: "Inbound support email is not configured." }, { status: 503 });
@@ -41,7 +41,11 @@ export async function POST(request) {
       headers: { id, timestamp, signature },
       webhookSecret,
     });
-  } catch {
+  } catch (error) {
+    console.error(
+      "Inbound support webhook signature verification failed:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
     return Response.json({ error: "Invalid webhook signature." }, { status: 401 });
   }
 
