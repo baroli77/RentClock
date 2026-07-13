@@ -391,6 +391,8 @@ export default function RentClockDashboard({ initialProperties, email, access, b
   const [saveState, setSaveState] = useState("saved"); // saved | saving | error
   const [checkoutState, setCheckoutState] = useState("idle");
   const [checkoutError, setCheckoutError] = useState("");
+  const [upgradeState, setUpgradeState] = useState("idle");
+  const [upgradeMessage, setUpgradeMessage] = useState("");
   const timerRef = useRef(null);
   const latestRef = useRef(props);
   const viewRef = useRef(view);
@@ -489,6 +491,34 @@ export default function RentClockDashboard({ initialProperties, email, access, b
     }
   };
 
+  const upgradeToAnnual = async () => {
+    if (
+      !window.confirm(
+        "Switch to annual billing now? Stripe will credit any unused monthly time and charge £59.90 today."
+      )
+    ) {
+      return;
+    }
+
+    setUpgradeState("loading");
+    setUpgradeMessage("");
+    try {
+      const res = await fetch("/api/subscription/annual", { method: "POST" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Could not switch to annual billing");
+      setUpgradeState("done");
+      setUpgradeMessage(
+        json.alreadyAnnual
+          ? "Your subscription is already on the annual plan."
+          : "You are now on annual billing."
+      );
+      router.refresh();
+    } catch (err) {
+      setUpgradeState("idle");
+      setUpgradeMessage(err.message);
+    }
+  };
+
   const startCheckout = async (plan) => {
     setCheckoutState(plan);
     setCheckoutError("");
@@ -583,6 +613,26 @@ export default function RentClockDashboard({ initialProperties, email, access, b
             Choose a plan now. Stripe will charge it only when the trial ends unless you cancel.
           </p>
           {checkoutError && <p className="trial-error">{checkoutError}</p>}
+        </section>
+      )}
+
+      {billingOn && access && (
+        <section className="card billing-card">
+          <div className="eyebrow">Billing</div>
+          <h2>Switch to annual and save</h2>
+          <p>
+            Annual membership is £59.90/year. Switching now credits any unused monthly time and
+            charges the annual plan today.
+          </p>
+          <div className="trial-actions">
+            <button className="btn brass" onClick={upgradeToAnnual} disabled={upgradeState === "loading"}>
+              {upgradeState === "loading" ? "Switching…" : "Switch to annual — £59.90/year"}
+            </button>
+            <button className="btn ghost" onClick={openBillingPortal}>
+              Manage billing
+            </button>
+          </div>
+          {upgradeMessage && <p className="trial-note">{upgradeMessage}</p>}
         </section>
       )}
 
