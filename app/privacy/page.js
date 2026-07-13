@@ -37,7 +37,7 @@ export default function PrivacyPage() {
         <p>We keep your information while your account is active and for as long as reasonably necessary afterwards for legitimate operational, legal or record-keeping reasons. We use access controls and reputable service providers to protect information, but no internet service can guarantee absolute security.</p>
 
         <h2>Your rights</h2>
-        <p>Depending on where you live, you may have rights to access, correct, erase, restrict or object to the processing of your personal information, and to ask for a copy of it. To make a request, email <a href="mailto:obarton77@gmail.com">obarton77@gmail.com</a>. You may also have the right to complain to the UK Information Commissioner&rsquo;s Office.</p>
+        <p>Depending on where you live, you may have rights to access, correct, erase, restrict or object to the processing of your personal information, and to ask for a copy of it. To make a request, email <a href="mailto:support@rentclock.com">support@rentclock.com</a>. You may also have the right to complain to the UK Information Commissioner&rsquo;s Office.</p>
 
         <h2>Changes to this policy</h2>
         <p>We may update this policy when the service or applicable law changes. The latest version will always be published on this page.</p>
