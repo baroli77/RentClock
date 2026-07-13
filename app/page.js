@@ -1,18 +1,23 @@
 import Link from "next/link";
 import BrandLogo from "@/components/BrandLogo";
 
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com";
+
 export default function Landing() {
-  const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com";
   const softwareLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     name: "RentClock",
+    url: SITE,
     applicationCategory: "BusinessApplication",
+    applicationSubCategory: "Landlord compliance software",
     operatingSystem: "Web",
     description:
       "Compliance deadline tracker for small landlords in England. Tracks gas safety, EICR, EPC, deposit and Renters' Rights Act deadlines with email reminders.",
+    image: `${SITE}/opengraph-image`,
     offers: {
       "@type": "Offer",
+      url: `${SITE}/pricing`,
       price: "5.99",
       priceCurrency: "GBP",
     },
@@ -21,284 +26,125 @@ export default function Landing() {
     "@context": "https://schema.org",
     "@type": "FAQPage",
     mainEntity: [
-      {
-        "@type": "Question",
-        name: "Is RentClock legal advice?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "No, it is a deadline ledger. RentClock tells you what is due and when, based on England's private rented sector rules. For disputes or edge cases, speak to a professional.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Can other users see my properties?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "No. Your data is isolated per account at the database level, and documents are stored privately so only you can access your files.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "What if I cancel?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Cancel in two clicks from the billing page and keep access until your period ends. Your ledger stays intact if you come back.",
-        },
-      },
-    ],
+      ["Is RentClock legal advice?", "No. RentClock is a deadline ledger designed to help small landlords in England stay organised. For disputes or edge cases, speak to a professional."],
+      ["Can other users see my properties?", "No. Your data is isolated per account and documents are stored privately so only you can access them."],
+      ["What happens if I cancel?", "Cancel from the billing page and keep access until your period ends. Your ledger remains intact if you return."],
+    ].map(([name, text]) => ({
+      "@type": "Question",
+      name,
+      acceptedAnswer: { "@type": "Answer", text },
+    })),
   };
 
   return (
-    <div className="app">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
-      />
-      <header className="masthead">
-        <div className="brand">
-          <Link href="/" className="brand-link" aria-label="RentClock home">
-            <BrandLogo />
-          </Link>
-        </div>
-        <nav className="nav">
-          <Link href="/guides">Guides</Link>
+    <div className="app home-v2">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
+
+      <header className="masthead home-v2-head">
+        <Link href="/" className="brand-link" aria-label="RentClock home"><BrandLogo /></Link>
+        <nav className="nav home-v2-nav" aria-label="Main navigation">
+          <a href="#why-rentclock">Why RentClock</a>
+          <a href="#how-it-works">How it works</a>
           <Link href="/pricing">Pricing</Link>
-          <Link href="/login" className="btn primary sm">
-            Sign in
-          </Link>
+          <Link href="/login" className="btn primary sm">Start free trial</Link>
         </nav>
       </header>
 
-      <div className="landing-logo-wrap">
-        <BrandLogo variant="full" />
-      </div>
-
-      <section className="hero landing-hero">
-        <div className="eyebrow light">For landlords with 1–10 properties · England</div>
-        <h1 className="landing-h1">
-          One missed certificate
-          <br />
-          can cost you £7,000.
-        </h1>
-        <p className="landing-sub">
-          Gas safety. EICR. EPC. Deposit rules. And now the Renters&rsquo; Rights Act, rolling out
-          in phases with new obligations and civil penalties attached. RentClock tracks every
-          deadline across every property and emails you before anything lapses — so compliance
-          stops living in your head.
-        </p>
-        <Link href="/login" className="btn brass">
-          Start your 14-day free trial
-        </Link>
-        <div className="landing-note mono">£5.99/month or £59.90/year · unlimited properties · cancel anytime</div>
-      </section>
-
-      <section className="mockwrap">
-        <div className="eyebrow">What your ledger looks like</div>
-        <div className="card mock-card" aria-hidden="true">
-          <div className="mock-title">12 Mill Road</div>
-          <div className="ledger tight">
-            <div className="row slim">
-              <div className="row-label">
-                Gas Safety Certificate (CP12)
-                <span className="row-prop">Renew by 4 Jun 2026</span>
-              </div>
-              <div className="row-due mono">4 Jun 2026</div>
-              <div className="row-status">
-                <span className="days mono neg">37d over</span>
-                <span className="stamp st-overdue tilted">OVERDUE</span>
-              </div>
-            </div>
-            <div className="row slim">
-              <div className="row-label">
-                Electrical Safety Report (EICR)
-                <span className="row-prop">Renew by 22 Aug 2026</span>
-              </div>
-              <div className="row-due mono">22 Aug 2026</div>
-              <div className="row-status">
-                <span className="days mono">42d</span>
-                <span className="stamp st-soon">DUE SOON</span>
-              </div>
-            </div>
-            <div className="row slim">
-              <div className="row-label">
-                Energy Performance Certificate (EPC)
-                <span className="row-prop">Band C · valid to 2033</span>
-              </div>
-              <div className="row-due mono">14 Mar 2033</div>
-              <div className="row-status">
-                <span className="stamp st-ok">COMPLIANT</span>
-              </div>
-            </div>
+      <main>
+        <section className="home-v2-hero">
+          <div>
+            <p className="eyebrow">For landlords with 1–10 properties · England</p>
+            <h1>Know what&rsquo;s due.<br />Before it becomes expensive.</h1>
+            <p className="home-v2-lead">RentClock puts every gas safety, EICR, EPC, deposit and Renters&rsquo; Rights deadline in one simple ledger — then emails you before it lapses.</p>
+            <Link href="/login" className="btn brass">Start your 14-day free trial</Link>
+            <p className="home-v2-note">Card required · £5.99/month or £59.90/year · cancel before day 14 to pay nothing</p>
           </div>
-        </div>
-        <p className="mock-caption">
-          Every property gets its full statutory checklist, a countdown on every renewal, and the
-          actual certificates attached — out of your inbox, ready when the council or your lender
-          asks.
-        </p>
-      </section>
+          <aside className="home-v2-ledger" aria-label="Example RentClock deadline ledger">
+            <div className="home-v2-ledger-top"><span>Your deadline ledger</span><span>saved</span></div>
+            <div className="home-v2-property">12 Mill Road</div>
+            <Deadline name="Gas safety certificate" detail="Renewed 4 Jun 2025" status="DUE IN 18 DAYS" />
+            <Deadline name="Electrical safety report" detail="Valid until 22 Aug 2026" status="ON TRACK" ok />
+            <Deadline name="EPC" detail="Band C · valid until 2033" status="ON TRACK" ok />
+          </aside>
+        </section>
 
-      <section className="stakes">
-        <div className="eyebrow">What non-compliance actually costs</div>
-        <div className="stakes-grid">
-          <div className="card stake">
-            <div className="stake-num mono">£7,000</div>
-            <p>
-              Civil penalty for missing Renters&rsquo; Rights Act duties like the tenant
-              information sheet — one of several new obligations phasing in through 2028.
-            </p>
+        <div className="home-v2-trust" aria-label="RentClock benefits">
+          <span><b>One place</b> for every property deadline</span>
+          <span><b>Email reminders</b> before anything lapses</span>
+          <span><b>Unlimited properties</b> on one simple plan</span>
+        </div>
+
+        <section id="why-rentclock" className="home-v2-why">
+          <p className="eyebrow">Why RentClock</p>
+          <h2>More reliable than a spreadsheet.<br />Simpler than full property software.</h2>
+          <p className="home-v2-lead">Built specifically for small landlords who need compliance under control — not a complicated, agent-focused accounting suite.</p>
+          <div className="home-v2-comparison">
+            <div className="home-v2-contrast"><b>Not a spreadsheet.</b>You should not have to remember every date, chase every document or keep up with every rule change yourself.</div>
+            <article className="home-v2-rentclock-card">
+              <span className="home-v2-badge">Best for small landlords</span>
+              <h3>RentClock</h3>
+              <p>Your compliance system, without the complexity.</p>
+              <ul>
+                <li>✓ Reminders before every deadline</li>
+                <li>✓ Certificates beside each property</li>
+                <li>✓ England-specific compliance checklist</li>
+                <li>✓ £5.99/month, unlimited properties</li>
+              </ul>
+            </article>
+            <div className="home-v2-contrast"><b>Not a full management suite.</b>Get the compliance certainty you need, without agent tools, rent accounts or per-tenancy pricing.</div>
           </div>
-          <div className="card stake">
-            <div className="stake-num mono">£40,000</div>
-            <p>
-              Maximum council penalty for electrical safety breaches — a lapsed EICR is exactly
-              that.
-            </p>
+        </section>
+
+        <section id="how-it-works" className="home-v2-steps-section">
+          <p className="eyebrow">Three simple steps</p>
+          <h2>Set it up once. Stay ahead all year.</h2>
+          <div className="home-v2-steps">
+            <Step number="01" title="Add each property">RentClock creates its England compliance checklist automatically.</Step>
+            <Step number="02" title="Add the last renewal date">Attach the certificate while it is in front of you.</Step>
+            <Step number="03" title="Get the reminder first">We email you at 60, 30, 14 and 7 days, on the day and when overdue.</Step>
           </div>
-          <div className="card stake">
-            <div className="stake-num mono">1–3×</div>
-            <p>
-              The deposit, awarded to your tenant, if it isn&rsquo;t protected within 30 days —
-              plus real trouble regaining possession later.
-            </p>
+        </section>
+
+        <section className="home-v2-two-col">
+          <div>
+            <p className="eyebrow">Built for England</p>
+            <h2>Rules change.<br />Your checklist keeps up.</h2>
+            <p>RentClock covers recurring safety dates and the Renters&rsquo; Rights Act duties that arrive in phases, so you do not have to track every announcement yourself.</p>
           </div>
-        </div>
-      </section>
-
-      <section className="how">
-        <div className="eyebrow">How it works</div>
-        <ol className="how-list">
-          <li>
-            <b>Add your properties.</b> RentClock builds each one&rsquo;s legal checklist
-            automatically — no setup, no spreadsheet.
-          </li>
-          <li>
-            <b>Enter the last date each check was done.</b> Attach the certificate while
-            you&rsquo;re at it.
-          </li>
-          <li>
-            <b>Get emailed before anything lapses.</b> Reminders at 60, 30, 14 and 7 days, on the
-            day, and when something goes overdue. Plus a weekly note about anything you
-            haven&rsquo;t recorded yet.
-          </li>
-        </ol>
-      </section>
-
-      <section className="features">
-        <div className="card feature">
-          <div className="eyebrow">Built for the rules</div>
-          <h3>Knows the details spreadsheets miss</h3>
-          <p>
-            Like the gas certificate rule where renewing in the final two months preserves your
-            original expiry date, or which Renters&rsquo; Rights Act duties apply to pre-2026
-            tenancies versus new ones.
-          </p>
-        </div>
-        <div className="card feature">
-          <div className="eyebrow">Renters&rsquo; Rights Act</div>
-          <h3>Kept current as the law rolls out</h3>
-          <p>
-            Database registration, ombudsman membership and more land in stages through 2028.
-            Each new duty appears in your ledger when it goes live — with its deadline.
-          </p>
-        </div>
-        <div className="card feature">
-          <div className="eyebrow">Documents</div>
-          <h3>Certificates out of the inbox</h3>
-          <p>
-            Attach the actual gas cert, EICR and EPC to each item. When someone asks for proof,
-            it&rsquo;s one click — not an inbox excavation.
-          </p>
-        </div>
-        <div className="card feature">
-          <div className="eyebrow">Deliberately simple</div>
-          <h3>Not another accounting suite</h3>
-          <p>
-            No rent ledgers, no bookkeeping, no tax modules you&rsquo;ll never open. RentClock does
-            one job — you never miss a compliance deadline — and does it properly.
-          </p>
-        </div>
-      </section>
-
-      <section className="compare">
-        <div className="eyebrow">Where RentClock fits</div>
-        <div className="compare-rows">
-          <div className="card compare-row">
-            <b>Your spreadsheet</b>
-            <p>Free, and it never emails you. It just sits there while the deadline passes.</p>
+          <div>
+            <Faq question="Can other people see my properties?">No. Your data and documents are private to your account.</Faq>
+            <Faq question="Is this legal advice?">No. It is a deadline ledger designed to help you stay organised.</Faq>
+            <Faq question="What happens if I cancel?">You keep access until your paid period ends and your ledger remains intact if you return.</Faq>
           </div>
-          <div className="card compare-row">
-            <b>Full property-management suites</b>
-            <p>
-              Powerful, priced per tenancy, and built for agents. You&rsquo;ll pay for accounting
-              features to get the one reminder you needed.
-            </p>
-          </div>
-          <div className="card compare-row highlight">
-            <b>RentClock — £5.99/month, unlimited properties</b>
-            <p>
-              Just the deadlines, the documents, and the reminders. Tax deductible as a business
-              expense, like the rest of your letting costs.
-            </p>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="faq">
-        <div className="eyebrow">Fair questions</div>
-        <div className="faq-item">
-          <b>Is this legal advice?</b>
-          <p>
-            No — it&rsquo;s a deadline ledger. RentClock tells you what&rsquo;s due and when, based
-            on England&rsquo;s private rented sector rules. For disputes or edge cases, speak to a
-            professional.
-          </p>
-        </div>
-        <div className="faq-item">
-          <b>Can other users see my properties?</b>
-          <p>
-            No. Your data is isolated per account at the database level, and documents are stored
-            privately — only you can access your files.
-          </p>
-        </div>
-        <div className="faq-item">
-          <b>What if I cancel?</b>
-          <p>
-            Cancel in two clicks from the billing page, keep access until your period ends. Your
-            ledger stays intact if you come back.
-          </p>
-        </div>
-        <div className="faq-item">
-          <b>Scotland, Wales, Northern Ireland?</b>
-          <p>
-            RentClock currently covers England only — the rules differ enough elsewhere that
-            pretending otherwise would be a disservice. Other nations are on the roadmap.
-          </p>
-        </div>
-      </section>
+        <section className="home-v2-cta">
+          <p className="eyebrow">Ready when you are</p>
+          <h2>Spend ten minutes now.<br />Avoid a very expensive reminder later.</h2>
+          <p>14-day free trial · card required · cancel before day 14 to pay nothing</p>
+          <Link href="/login" className="btn brass">Start your free trial</Link>
+        </section>
+      </main>
 
-      <section className="final-cta hero">
-        <h2 className="final-h2">The fine costs more than a decade of RentClock.</h2>
-        <p className="landing-sub">
-          Set it up in ten minutes. First reminder could save you four figures.
-        </p>
-        <Link href="/login" className="btn brass">
-          Start your free trial
-        </Link>
-      </section>
-
-      <footer className="foot">
+      <footer className="foot home-v2-foot">
         <p>RentClock is a deadline ledger, not legal advice. Made in the UK.</p>
         <nav className="foot-links" aria-label="Legal">
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/terms">Terms</Link>
-          <Link href="/contact">Contact</Link>
+          <Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/contact">Contact</Link>
         </nav>
       </footer>
     </div>
   );
+}
+
+function Deadline({ name, detail, status, ok = false }) {
+  return <div className="home-v2-deadline"><div>{name}<small>{detail}</small></div><span className={ok ? "ok" : ""}>{status}</span></div>;
+}
+
+function Step({ number, title, children }) {
+  return <article className="home-v2-step"><p>{number}</p><h3>{title}</h3><span>{children}</span></article>;
+}
+
+function Faq({ question, children }) {
+  return <div className="home-v2-faq"><b>{question}</b><span>{children}</span></div>;
 }
