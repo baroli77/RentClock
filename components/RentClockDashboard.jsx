@@ -379,6 +379,8 @@ export default function RentClockDashboard({ initialProperties, email, access, b
   const [props, setProps] = useState(initialProperties || []);
   const [view, setView] = useState("overview"); // "overview" | "add" | property id
   const [saveState, setSaveState] = useState("saved"); // saved | saving | error
+  const [checkoutState, setCheckoutState] = useState("idle");
+  const [checkoutError, setCheckoutError] = useState("");
   const timerRef = useRef(null);
   const latestRef = useRef(props);
   const viewRef = useRef(view);
@@ -466,15 +468,33 @@ export default function RentClockDashboard({ initialProperties, email, access, b
   };
 
   const openBillingPortal = async () => {
-    const res = await fetch("/api/portal", { method: "POST" });
-    const json = await res.json();
-    if (json.url) window.location.href = json.url;
+    setCheckoutError("");
+    try {
+      const res = await fetch("/api/portal", { method: "POST" });
+      const json = await res.json();
+      if (!res.ok || !json.url) throw new Error(json.error || "Could not open billing");
+      window.location.href = json.url;
+    } catch (err) {
+      setCheckoutError(err.message);
+    }
   };
 
-  const startCheckout = async () => {
-    const res = await fetch("/api/checkout", { method: "POST" });
-    const json = await res.json();
-    if (json.url) window.location.href = json.url;
+  const startCheckout = async (plan) => {
+    setCheckoutState(plan);
+    setCheckoutError("");
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.url) throw new Error(json.error || "Could not start checkout");
+      window.location.href = json.url;
+    } catch (err) {
+      setCheckoutError(err.message);
+      setCheckoutState("idle");
+    }
   };
 
   // Aggregate ledger
@@ -528,14 +548,31 @@ export default function RentClockDashboard({ initialProperties, email, access, b
 
       {!access && (
         <section className="card paywall">
-          <div className="eyebrow">Trial ended</div>
+          <div className="eyebrow">Start your 14-day free trial</div>
           <p>
-            Your ledger is safe, but editing and reminders are paused. Subscribe to pick up where
-            you left off — £5.99/month or £59.90/year, cancel anytime.
+            Add your card details to start your trial. You will not be charged today. Cancel before
+            your 14 days are up and you will not be charged.
           </p>
-          <button className="btn brass" onClick={startCheckout}>
-            Subscribe
-          </button>
+          <div className="trial-actions">
+            <button
+              className="btn brass"
+              onClick={() => startCheckout("monthly")}
+              disabled={checkoutState !== "idle"}
+            >
+              {checkoutState === "monthly" ? "Opening checkout…" : "Start trial — £5.99/month"}
+            </button>
+            <button
+              className="btn ghost"
+              onClick={() => startCheckout("annual")}
+              disabled={checkoutState !== "idle"}
+            >
+              {checkoutState === "annual" ? "Opening checkout…" : "Start trial — £59.90/year"}
+            </button>
+          </div>
+          <p className="trial-note">
+            Choose a plan now. Stripe will charge it only when the trial ends unless you cancel.
+          </p>
+          {checkoutError && <p className="trial-error">{checkoutError}</p>}
         </section>
       )}
 
