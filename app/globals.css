@@ -55,13 +55,35 @@ html, body { margin: 0; padding: 0; background: var(--paper); }
 .nav { display: flex; align-items: center; gap: 16px; }
 .nav a { color: var(--ink); text-decoration: none; font-weight: 600; font-size: 14px; }
 .mast-right { display: flex; align-items: center; gap: 14px; }
-.linkbtn {
-  background: none; border: none; cursor: pointer;
-  color: var(--ink); font-weight: 600; font-size: 13.5px; padding: 0;
-  border-bottom: 1px solid var(--line);
+.navbtn {
+  background: none;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 6px 13px;
+  border-radius: 7px;
+  transition: background .15s, border-color .15s;
 }
-.save { font-size: 11px; color: var(--grey); }
-.save.error { color: var(--red); }
+.navbtn:hover { background: #ecede9; border-color: #c9ccc4; }
+.save-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--grey);
+}
+.save-dot .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--brass);
+}
+.save-dot.saving .dot { animation: pulse 1s ease-in-out infinite; }
+.save-dot.error { color: var(--red); }
+.save-dot.error .dot { background: var(--red); animation: none; }
+@keyframes pulse { 0%,100% { opacity: .3; } 50% { opacity: 1; } }
 
 .eyebrow {
   font-family: 'IBM Plex Mono', monospace;

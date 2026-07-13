@@ -506,15 +506,21 @@ export default function RentClockDashboard({ initialProperties, email, access, b
           </Link>
         </div>
         <div className="mast-right">
-          <span className={`save mono ${saveState}`}>
-            {saveState === "saving" ? "saving…" : saveState === "error" ? "save failed — retrying on next change" : "saved"}
-          </span>
+          {saveState !== "saved" && (
+            <span
+              className={`save-dot ${saveState}`}
+              title={saveState === "saving" ? "Saving…" : "Save failed — retrying on next change"}
+            >
+              <span className="dot" />
+              {saveState === "saving" ? "Saving" : "Save failed"}
+            </span>
+          )}
           {billingOn && (
-            <button className="linkbtn" onClick={openBillingPortal}>
+            <button className="navbtn" onClick={openBillingPortal}>
               Billing
             </button>
           )}
-          <button className="linkbtn" onClick={signOut}>
+          <button className="navbtn" onClick={signOut}>
             Sign out
           </button>
         </div>
