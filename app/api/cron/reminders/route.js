@@ -36,7 +36,7 @@ export async function GET(request) {
 
   let sent = 0;
   let nags = 0;
-  const site = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.example";
+  const site = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com";
   const from = process.env.REMINDER_FROM || "RentClock <onboarding@resend.dev>";
 
   for (const profile of profiles || []) {

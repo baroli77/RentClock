@@ -1,13 +1,68 @@
 import Link from "next/link";
 
 export default function Landing() {
+  const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com";
+  const softwareLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "RentClock",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    description:
+      "Compliance deadline tracker for small landlords in England. Tracks gas safety, EICR, EPC, deposit and Renters' Rights Act deadlines with email reminders.",
+    offers: {
+      "@type": "Offer",
+      price: "5.99",
+      priceCurrency: "GBP",
+    },
+  };
+  const faqLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "Is RentClock legal advice?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "No, it is a deadline ledger. RentClock tells you what is due and when, based on England's private rented sector rules. For disputes or edge cases, speak to a professional.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Can other users see my properties?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "No. Your data is isolated per account at the database level, and documents are stored privately so only you can access your files.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What if I cancel?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Cancel in two clicks from the billing page and keep access until your period ends. Your ledger stays intact if you come back.",
+        },
+      },
+    ],
+  };
+
   return (
     <div className="app">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+      />
       <header className="masthead">
         <div className="brand">
           <svg className="brand-mark" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> RentClock
         </div>
         <nav className="nav">
+          <Link href="/guides">Guides</Link>
           <Link href="/pricing">Pricing</Link>
           <Link href="/login" className="btn primary sm">
             Sign in
@@ -31,7 +86,7 @@ export default function Landing() {
         <Link href="/login" className="btn brass">
           Start your 14-day free trial
         </Link>
-        <div className="landing-note mono">£4.99/month or £49/year · unlimited properties · cancel anytime</div>
+        <div className="landing-note mono">£5.99/month or £59.90/year · unlimited properties · cancel anytime</div>
       </section>
 
       <section className="mockwrap">
@@ -177,7 +232,7 @@ export default function Landing() {
             </p>
           </div>
           <div className="card compare-row highlight">
-            <b>RentClock — £4.99/month, unlimited properties</b>
+            <b>RentClock — £5.99/month, unlimited properties</b>
             <p>
               Just the deadlines, the documents, and the reminders. Tax deductible as a business
               expense, like the rest of your letting costs.

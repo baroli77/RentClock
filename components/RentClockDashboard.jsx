@@ -525,7 +525,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
           <div className="eyebrow">Trial ended</div>
           <p>
             Your ledger is safe, but editing and reminders are paused. Subscribe to pick up where
-            you left off — £4.99/month or £49/year, cancel anytime.
+            you left off — £5.99/month or £59.90/year, cancel anytime.
           </p>
           <button className="btn brass" onClick={startCheckout}>
             Subscribe

@@ -1,5 +1,12 @@
 import Link from "next/link";
 
+export const metadata = {
+  title: "Pricing — £5.99/month, unlimited properties",
+  description:
+    "RentClock is £5.99/month or £59.90/year for unlimited properties. Full compliance checklist, email reminders, document vault, and a 14-day free trial.",
+  alternates: { canonical: "/pricing" },
+};
+
 export default function Pricing() {
   return (
     <div className="app">
@@ -14,9 +21,9 @@ export default function Pricing() {
       <section className="card pricing-card">
         <div className="eyebrow">One plan, no nonsense</div>
         <div className="price mono">
-          £4.99<span className="per">/month</span>
+          £5.99<span className="per">/month</span>
         </div>
-        <div className="price-alt mono">or £49/year — two months free</div>
+        <div className="price-alt mono">or £59.90/year — two months free</div>
         <ul className="price-list">
           <li>Unlimited properties — no per-tenancy pricing</li>
           <li>Full statutory checklist per property</li>

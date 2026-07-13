@@ -2,7 +2,7 @@
 
 Compliance deadline tracker for small landlords in England. Next.js + Supabase + Stripe + Resend.
 
-Everything below assumes you've created the accounts from the setup guide: GitHub, Vercel, Supabase (London region), Stripe, Resend, and bought a domain.
+Everything below assumes you've created the accounts listed in **SETUP-GUIDE.md** (read that first): GitHub, Vercel, Supabase (London region), Stripe, Resend, and a domain.
 
 ---
 
@@ -85,3 +85,24 @@ Both directions must work before launch. This is the step people screw up.
 - `properties.payload` is jsonb — the whole property object as the UI uses it. Don't normalise until you have a reason to.
 - Billing state only ever changes via Stripe webhooks using the service-role client. Users can't write their own `subscription_status` — there's deliberately no RLS policy for it.
 - If `STRIPE_SECRET_KEY`/`STRIPE_PRICE_ID` are unset, `lib/billing.js` treats everyone as subscribed. Handy for dev, and means you can soft-launch free.
+
+## SEO & guides
+
+The site ships SEO-ready: per-page titles/descriptions, OpenGraph + Twitter cards,
+canonical URLs, `sitemap.xml`, `robots.txt`, an SVG favicon (`app/icon.svg`), and
+JSON-LD structured data (SoftwareApplication + FAQ on the homepage, Article + FAQ on
+each guide).
+
+**IMPORTANT:** `sitemap.xml` and `robots.txt` bake in `NEXT_PUBLIC_SITE_URL` at build
+time. Make sure that env var is set to your real domain in Vercel, or they'll point at
+the wrong URL. (Verified: with the correct env var they output the right domain.)
+
+**Adding a guide** (your main SEO lever): edit `lib/guides.js` and add an object to the
+`GUIDES` array — slug, title, description, intro, sections, and faqs. The listing page,
+the article page, the sitemap, and the structured data all pick it up automatically. No
+new files needed. Publish the PRS-database guide well before registration opens so it
+ages into ranking.
+
+**Still yours to do:** a proper OpenGraph share image (currently text cards only — add
+`app/opengraph-image.png`, 1200×630, for rich social previews), and submitting your
+sitemap to Google Search Console once live.
