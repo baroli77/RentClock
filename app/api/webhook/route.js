@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { Resend } from "resend";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { newMemberEmail } from "@/lib/email";
 
 // Stripe webhook: keeps profiles.subscription_status in sync.
 // Events to enable on the endpoint: checkout.session.completed,
@@ -21,11 +23,14 @@ export async function POST(request) {
 
   async function setStatusByCustomer(customerId, status) {
     if (!customerId) throw new Error("Stripe event has no customer");
-    const { error } = await admin
+    const { data, error } = await admin
       .from("profiles")
       .update({ subscription_status: status })
-      .eq("stripe_customer_id", customerId);
+      .eq("stripe_customer_id", customerId)
+      .select("id, email, owner_notification_sent_at")
+      .maybeSingle();
     if (error) throw error;
+    return data;
   }
 
   try {
@@ -34,7 +39,47 @@ export async function POST(request) {
       const session = event.data.object;
       // Trial subscriptions start as 'trialing'; paid-immediately as 'active'.
       const sub = await stripe.subscriptions.retrieve(session.subscription);
-      await setStatusByCustomer(session.customer, sub.status);
+      const profile = await setStatusByCustomer(session.customer, sub.status);
+
+      // The checkout event can be retried by Stripe. Claim the notification in
+      // the database first so the owner only receives one email per member.
+      if (profile && !profile.owner_notification_sent_at && process.env.RESEND_API_KEY) {
+        const { data: claimed, error: claimError } = await admin
+          .from("profiles")
+          .update({ owner_notification_sent_at: new Date().toISOString() })
+          .eq("id", profile.id)
+          .is("owner_notification_sent_at", null)
+          .select("id, email")
+          .maybeSingle();
+        if (claimError) throw claimError;
+
+        if (claimed) {
+          const owner = process.env.OWNER_NOTIFICATION_EMAIL || "obarton77@gmail.com";
+          const from = process.env.REMINDER_FROM || "RentClock <onboarding@resend.dev>";
+          const interval = sub.items.data[0]?.price?.recurring?.interval;
+          const plan = interval === "year" ? "Annual (£59.90/year)" : "Monthly (£5.99/month)";
+          const { html, text } = newMemberEmail({
+            memberEmail: claimed.email || "Email unavailable",
+            plan,
+            site: process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com",
+          });
+          const resend = new Resend(process.env.RESEND_API_KEY);
+          const { error: emailError } = await resend.emails.send({
+            from,
+            to: owner,
+            subject: `New RentClock member — ${claimed.email || "email unavailable"}`,
+            html,
+            text,
+          });
+          if (emailError) {
+            await admin
+              .from("profiles")
+              .update({ owner_notification_sent_at: null })
+              .eq("id", claimed.id);
+            throw new Error(emailError.message);
+          }
+        }
+      }
       break;
     }
     case "customer.subscription.updated": {
