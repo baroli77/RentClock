@@ -1,9 +1,11 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { Resend } from "resend";
 
 export const runtime = "nodejs";
 
 const SUPPORT_ADDRESS = "support@rentclock.com";
 const FORWARD_TO = "obarton77@gmail.com";
+const WEBHOOK_TOLERANCE_SECONDS = 10 * 60;
 
 function plainTextFallback(value) {
   return String(value || "")
@@ -13,6 +15,38 @@ function plainTextFallback(value) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;")
     .replace(/\n/g, "<br />");
+}
+
+function verifySvixSignature({ payload, id, timestamp, signature, webhookSecret }) {
+  const timestampSeconds = Number(timestamp);
+  if (
+    !Number.isFinite(timestampSeconds) ||
+    Math.abs(Date.now() / 1000 - timestampSeconds) > WEBHOOK_TOLERANCE_SECONDS
+  ) {
+    throw new Error("Webhook timestamp is outside the allowed window.");
+  }
+
+  const secretPart = webhookSecret.split("_")[1];
+  if (!secretPart) {
+    throw new Error("Webhook signing secret is malformed.");
+  }
+
+  const expected = createHmac("sha256", Buffer.from(secretPart, "base64"))
+    .update(`${id}.${timestamp}.${payload}`)
+    .digest();
+
+  const valid = signature
+    .split(" ")
+    .map((entry) => entry.split(",", 2))
+    .filter(([version, value]) => version === "v1" && value)
+    .some(([, value]) => {
+      const received = Buffer.from(value, "base64");
+      return received.length === expected.length && timingSafeEqual(received, expected);
+    });
+
+  if (!valid) {
+    throw new Error("Webhook signature does not match.");
+  }
 }
 
 export async function POST(request) {
@@ -32,15 +66,10 @@ export async function POST(request) {
     return Response.json({ error: "Missing webhook signature." }, { status: 400 });
   }
 
-  const resend = new Resend(apiKey);
   let event;
-
   try {
-    event = resend.webhooks.verify({
-      payload,
-      headers: { id, timestamp, signature },
-      webhookSecret,
-    });
+    verifySvixSignature({ payload, id, timestamp, signature, webhookSecret });
+    event = JSON.parse(payload);
   } catch (error) {
     console.error(
       "Inbound support webhook signature verification failed:",
@@ -62,6 +91,7 @@ export async function POST(request) {
     return Response.json({ received: true, ignored: true });
   }
 
+  const resend = new Resend(apiKey);
   const { data: receivedEmail, error: emailError } = await resend.emails.receiving.get(
     event.data.email_id
   );
