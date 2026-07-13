@@ -47,6 +47,7 @@ export default function Landing() {
           <a href="#why-rentclock">Why RentClock</a>
           <a href="#how-it-works">How it works</a>
           <Link href="/pricing">Pricing</Link>
+          <Link href="/login">Sign in</Link>
           <Link href="/login" className="btn primary sm">Start free trial</Link>
         </nav>
       </header>
@@ -57,7 +58,10 @@ export default function Landing() {
             <p className="eyebrow">For landlords with 1–10 properties · England</p>
             <h1>Know what&rsquo;s due.<br />Before it becomes expensive.</h1>
             <p className="home-v2-lead">RentClock puts every gas safety, EICR, EPC, deposit and Renters&rsquo; Rights deadline in one simple ledger — then emails you before it lapses.</p>
-            <Link href="/login" className="btn brass">Start your 14-day free trial</Link>
+            <div className="home-v2-hero-actions">
+              <Link href="/login" className="btn brass">Start your 14-day free trial</Link>
+              <Link href="/login" className="home-v2-sign-in">Already have an account? Sign in</Link>
+            </div>
             <p className="home-v2-note">Card required · £5.99/month or £59.90/year · cancel before day 14 to pay nothing</p>
           </div>
           <aside className="home-v2-ledger" aria-label="Example RentClock deadline ledger">
@@ -123,7 +127,10 @@ export default function Landing() {
           <p className="eyebrow">Ready when you are</p>
           <h2>Spend ten minutes now.<br />Avoid a very expensive reminder later.</h2>
           <p>14-day free trial · card required · cancel before day 14 to pay nothing</p>
-          <Link href="/login" className="btn brass">Start your free trial</Link>
+          <div className="home-v2-hero-actions">
+            <Link href="/login" className="btn brass">Start your free trial</Link>
+            <Link href="/login" className="home-v2-sign-in">Already have an account? Sign in</Link>
+          </div>
         </section>
       </main>
 
