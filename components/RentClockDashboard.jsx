@@ -479,6 +479,13 @@ export default function RentClockDashboard({ initialProperties, email, access, b
     router.refresh();
   };
 
+  const showBilling = () => {
+    setView("overview");
+    requestAnimationFrame(() => {
+      document.getElementById("billing")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+
   const openBillingPortal = async () => {
     setCheckoutError("");
     try {
@@ -576,7 +583,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
             </span>
           )}
           {billingOn && (
-            <button className="navbtn" onClick={openBillingPortal}>
+            <button className="navbtn" onClick={access ? showBilling : openBillingPortal}>
               Billing
             </button>
           )}
@@ -617,7 +624,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
       )}
 
       {billingOn && access && (
-        <section className="card billing-card">
+        <section className="card billing-card" id="billing">
           <div className="eyebrow">Billing</div>
           <h2>Switch to annual and save</h2>
           <p>
