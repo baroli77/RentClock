@@ -20,6 +20,18 @@ export function generateMetadata({ params }) {
       title: guide.title,
       description: guide.description,
       url: `${SITE}/guides/${guide.slug}`,
+      images: [
+        {
+          url: "/opengraph-image",
+          width: 1200,
+          height: 630,
+          alt: "RentClock — compliance deadlines for small landlords",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: ["/opengraph-image"],
     },
   };
 }
@@ -34,10 +46,29 @@ export default function GuidePage({ params }) {
     "@type": "Article",
     headline: guide.title,
     description: guide.description,
+    datePublished: guide.updated,
     dateModified: guide.updated,
-    author: { "@type": "Organization", name: "RentClock" },
-    publisher: { "@type": "Organization", name: "RentClock" },
-    mainEntityOfPage: `${SITE}/guides/${guide.slug}`,
+    image: `${SITE}/opengraph-image`,
+    author: { "@type": "Organization", name: "RentClock", url: SITE },
+    publisher: {
+      "@type": "Organization",
+      name: "RentClock",
+      url: SITE,
+      logo: { "@type": "ImageObject", url: `${SITE}/opengraph-image` },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${SITE}/guides/${guide.slug}`,
+    },
+  };
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE },
+      { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE}/guides` },
+      { "@type": "ListItem", position: 3, name: guide.title, item: `${SITE}/guides/${guide.slug}` },
+    ],
   };
   const faqLd = {
     "@context": "https://schema.org",
@@ -58,6 +89,10 @@ export default function GuidePage({ params }) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
 
       <header className="masthead">
