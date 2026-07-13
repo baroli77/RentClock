@@ -180,7 +180,7 @@ function NewTenancyForm({ onConfirm, onCancel }) {
         <button className="btn ghost sm" onClick={onCancel}>Cancel</button>
       </div>
       <div className="nt-note">
-        Resets deposit protection, Right to Rent, ‘How to Rent’ and written statement tasks for the new tenants.
+        Resets deposit protection, Right to Rent, ‘How to Rent’, alarm and written-statement tasks for the new tenants.
       </div>
     </div>
   );
@@ -307,6 +307,16 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
                     value={prop.dates?.[item.key] || ""}
                     onChange={(e) => setDate(item.key, e.target.value)}
                   />
+                  {item.key === "eicr" && (
+                    <label className="date-override">
+                      <span className="lbl">Earlier due date (if stated)</span>
+                      <input
+                        type="date"
+                        value={prop.dates?.eicrNextDue || ""}
+                        onChange={(e) => setDate("eicrNextDue", e.target.value)}
+                      />
+                    </label>
+                  )}
                 </div>
                 <div className="row-due mono">
                   <span className="lbl">Next due</span>
