@@ -647,3 +647,60 @@ input[type="checkbox"] {
 
 
 .legal-page + .foot { width: 100%; max-width: 640px; margin-left: auto; margin-right: auto; }
+
+
+/* Homepage redesign */
+.home-v2 .masthead { margin-bottom: 0; }
+.home-v2-head { gap: 20px; }
+.home-v2-nav { gap: 20px; }
+.home-v2-hero { display: grid; grid-template-columns: 1.08fr .92fr; gap: 44px; align-items: center; padding: 56px 0 42px; }
+.home-v2 h1, .home-v2 h2, .home-v2 h3 { font-family: 'Bricolage Grotesque', sans-serif; letter-spacing: -.045em; line-height: 1.06; }
+.home-v2 h1 { font-size: clamp(40px, 6vw, 68px); margin: 0; }
+.home-v2 h2 { font-size: clamp(29px, 4vw, 43px); margin: 0 0 12px; }
+.home-v2 h3 { font-size: 20px; margin: 0 0 6px; }
+.home-v2-lead { color: var(--grey); font-size: 18px; max-width: 600px; margin: 18px 0 24px; }
+.home-v2-note { color: var(--grey); font-size: 13px; margin: 12px 0 0; }
+.home-v2-ledger { background: #102e49; color: #fff; border-radius: 14px; padding: 22px; box-shadow: 0 18px 34px #102e4924; }
+.home-v2-ledger-top { display: flex; justify-content: space-between; color: #ced8df; font-size: 13px; margin-bottom: 18px; }
+.home-v2-property { font-size: 21px; font-weight: 600; margin-bottom: 12px; }
+.home-v2-deadline { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 14px 0; border-top: 1px solid #ffffff2d; }
+.home-v2-deadline small { display: block; color: #c7d2da; margin-top: 3px; }
+.home-v2-deadline > span { color: #f0c766; font: 600 12px 'IBM Plex Mono', monospace; align-self: start; }
+.home-v2-deadline > span.ok { color: #90e2c9; }
+.home-v2-trust { display: flex; gap: 24px; flex-wrap: wrap; padding: 18px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--grey); font-size: 14px; }
+.home-v2-trust b { color: var(--ink); }
+.home-v2-why { background: #102e49; color: #fff; border-radius: 16px; padding: 40px; margin: 56px 0; }
+.home-v2-why .eyebrow { color: #cdb67b; }
+.home-v2-why .home-v2-lead { color: #d3dfe6; }
+.home-v2-comparison { display: grid; grid-template-columns: 1fr minmax(310px, 450px) 1fr; gap: 28px; align-items: center; margin-top: 34px; }
+.home-v2-contrast { color: #d3dfe6; font-size: 16px; line-height: 1.55; }
+.home-v2-contrast b { display: block; color: #fff; font-size: 18px; margin-bottom: 7px; }
+.home-v2-rentclock-card { padding: 25px; border-radius: 12px; background: #16aa9a; color: #082c34; box-shadow: 0 16px 30px #00162565; }
+.home-v2-badge { display: inline-block; padding: 5px 9px; background: #102e49; color: #fff; border-radius: 4px; font: 600 11px 'IBM Plex Mono', monospace; letter-spacing: .08em; text-transform: uppercase; }
+.home-v2-rentclock-card h3 { font-size: 29px; margin: 15px 0 8px; }
+.home-v2-rentclock-card p { margin: 0 0 15px; color: #15545b; }
+.home-v2-rentclock-card ul { padding: 0; margin: 0; list-style: none; }
+.home-v2-rentclock-card li { padding: 10px 0; border-top: 1px solid #087e76; }
+.home-v2-steps-section { padding: 0 0 56px; }
+.home-v2-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 24px; }
+.home-v2-step { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 22px; }
+.home-v2-step p { color: var(--brass); font: 600 12px 'IBM Plex Mono', monospace; letter-spacing: .08em; margin: 0 0 16px; }
+.home-v2-step span, .home-v2-two-col p { color: var(--grey); }
+.home-v2-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 38px; align-items: start; padding: 0 0 56px; }
+.home-v2-faq { padding: 15px 0; border-top: 1px solid var(--line); }
+.home-v2-faq b { display: block; }
+.home-v2-faq span { color: var(--grey); font-size: 14px; }
+.home-v2-cta { text-align: center; background: #eaf4f1; border-radius: 16px; padding: 48px 24px; }
+.home-v2-cta > p:not(.eyebrow) { color: var(--grey); }
+.home-v2-foot { max-width: none; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.home-v2-foot .foot-links { margin-top: 0; }
+@media (max-width: 760px) {
+  .home-v2-nav { gap: 14px; }
+  .home-v2-hero, .home-v2-two-col { grid-template-columns: 1fr; gap: 25px; }
+  .home-v2-hero { padding: 38px 0; }
+  .home-v2-why { padding: 30px 22px; border-radius: 0; margin: 0 -16px 38px; }
+  .home-v2-comparison, .home-v2-steps { grid-template-columns: 1fr; gap: 20px; }
+  .home-v2-contrast { padding: 0 3px; }
+  .home-v2-steps-section, .home-v2-two-col { padding-bottom: 38px; }
+  .home-v2-cta { padding: 40px 20px; }
+}
