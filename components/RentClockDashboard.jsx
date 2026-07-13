@@ -480,13 +480,6 @@ export default function RentClockDashboard({ initialProperties, email, access, b
     router.refresh();
   };
 
-  const showBilling = () => {
-    setView("overview");
-    requestAnimationFrame(() => {
-      document.getElementById("billing")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  };
-
   const openBillingPortal = async () => {
     setCheckoutError("");
     try {
@@ -584,7 +577,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
             </span>
           )}
           {billingOn && (
-            <button className="navbtn" onClick={access ? showBilling : openBillingPortal}>
+            <button className="navbtn" onClick={openBillingPortal}>
               Billing
             </button>
           )}
@@ -625,18 +618,16 @@ export default function RentClockDashboard({ initialProperties, email, access, b
       )}
 
       {billingOn && access && (
-        <section className="card billing-card" id="billing">
-          <div className="eyebrow">Billing</div>
-          <h2>Switch to annual and save</h2>
-          <p>
-            Annual membership is £59.90/year. Switching now credits any unused monthly time and
-            charges the annual plan today.
-          </p>
-          <div className="trial-actions">
-            <button className="btn brass" onClick={upgradeToAnnual} disabled={upgradeState === "loading"}>
-              {upgradeState === "loading" ? "Switching…" : "Switch to annual — £59.90/year"}
+        <section className="billing-card" id="billing">
+          <div>
+            <span className="billing-label">Annual plan</span>
+            <p>Save £11.98 a year by switching to annual billing.</p>
+          </div>
+          <div className="billing-actions">
+            <button className="billing-link" onClick={upgradeToAnnual} disabled={upgradeState === "loading"}>
+              {upgradeState === "loading" ? "Switching…" : "Switch to annual"}
             </button>
-            <button className="btn ghost" onClick={openBillingPortal}>
+            <button className="billing-link" onClick={openBillingPortal}>
               Manage billing
             </button>
           </div>
