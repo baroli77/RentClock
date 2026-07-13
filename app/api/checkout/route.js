@@ -55,6 +55,7 @@ export async function POST(request) {
     customer: customerId,
     mode: "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
+    payment_method_collection: "always",
     subscription_data: { trial_period_days: 14 },
     success_url: `${site}/dashboard?welcome=1`,
     cancel_url: `${site}/pricing`,
