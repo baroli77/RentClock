@@ -30,9 +30,18 @@ export const metadata = {
     title: "RentClock — compliance deadlines for small landlords",
     description:
       "Never miss a gas safety, EICR, EPC or Renters' Rights Act deadline again. £5.99/month, unlimited properties.",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "RentClock — compliance deadlines for small landlords",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/opengraph-image"],
     title: "RentClock — compliance deadlines for small landlords",
     description:
       "Never miss a gas safety, EICR, EPC or Renters' Rights Act deadline again.",
