@@ -117,7 +117,7 @@ function DocList({ prop, itemKey, onUpdate }) {
       ))}
       <label className={`doc-add mono ${busy ? "busy" : ""}`}>
         {busy ? "Saving…" : "+ attach"}
-        <input type="file" accept=".pdf,image/*" onChange={upload} disabled={busy} hidden />
+        <input type="file" accept=".pdf,image/jpeg,image/png,image/webp" onChange={upload} disabled={busy} hidden />
       </label>
       {error && <span className="doc-err">{error}</span>}
     </div>
