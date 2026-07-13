@@ -53,6 +53,11 @@ export default function GuidesIndex() {
 
       <footer className="foot">
         <p>RentClock is a deadline ledger, not legal advice. Made in the UK.</p>
+        <nav className="foot-links" aria-label="Legal">
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
+          <Link href="/contact">Contact</Link>
+        </nav>
       </footer>
     </div>
   );
