@@ -20,6 +20,12 @@ export async function POST(request) {
     plan === "annual" && process.env.STRIPE_PRICE_ID_ANNUAL
       ? process.env.STRIPE_PRICE_ID_ANNUAL
       : process.env.STRIPE_PRICE_ID;
+  if (plan === "annual" && !process.env.STRIPE_PRICE_ID_ANNUAL) {
+    return NextResponse.json({ error: "Annual billing is not configured yet" }, { status: 400 });
+  }
+  if (!priceId) {
+    return NextResponse.json({ error: "Billing is not configured yet" }, { status: 400 });
+  }
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
   const supabase = await createClient();
