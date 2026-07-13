@@ -26,7 +26,11 @@ export default function Login() {
     });
     if (error) {
       setState("error");
-      setMessage(error.message);
+      setMessage(
+        typeof error.message === "string" && error.message !== "{}"
+          ? error.message
+          : "We couldn't send the sign-in email. Please try again in a few minutes."
+      );
     } else {
       setState("sent");
     }
