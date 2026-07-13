@@ -55,6 +55,9 @@ export default function Login() {
           <>
             <h2>Sign in with a magic link</h2>
             <p>Enter your email and we&rsquo;ll send you a one-click sign-in link.</p>
+            <p className="login-note">
+              If it doesn&rsquo;t arrive within a few minutes, please check your spam or junk folder.
+            </p>
             <div className="login-row">
               <input
                 type="email"
