@@ -1,5 +1,15 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { hasAccess } from "@/lib/billing";
+
+async function canEdit(supabase, userId) {
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("subscription_status")
+    .eq("id", userId)
+    .single();
+  return !error && hasAccess(profile);
+}
 
 // GET: all of the signed-in user's properties.
 export async function GET() {
@@ -27,6 +37,9 @@ export async function POST(request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  if (!(await canEdit(supabase, user.id))) {
+    return NextResponse.json({ error: "An active subscription or trial is required to edit your ledger" }, { status: 403 });
+  }
 
   let body;
   try {

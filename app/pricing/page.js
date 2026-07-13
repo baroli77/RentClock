@@ -20,6 +20,7 @@ export default function Pricing() {
 
       <section className="card pricing-card">
         <div className="eyebrow">One plan, no nonsense</div>
+        <h1 className="sr-only">RentClock pricing</h1>
         <div className="price mono">
           £5.99<span className="per">/month</span>
         </div>

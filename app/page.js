@@ -146,7 +146,7 @@ export default function Landing() {
             </p>
           </div>
           <div className="card stake">
-            <div className="stake-num mono">£30,000</div>
+            <div className="stake-num mono">£40,000</div>
             <p>
               Maximum council penalty for electrical safety breaches — a lapsed EICR is exactly
               that.

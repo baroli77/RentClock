@@ -53,13 +53,15 @@ export default function Login() {
           </>
         ) : (
           <>
-            <h2>Sign in with a magic link</h2>
+            <h1>Sign in with a magic link</h1>
             <p>Enter your email and we&rsquo;ll send you a one-click sign-in link.</p>
             <p className="login-note">
               If it doesn&rsquo;t arrive within a few minutes, please check your spam or junk folder.
             </p>
             <div className="login-row">
+              <label className="sr-only" htmlFor="email">Email address</label>
               <input
+                id="email"
                 type="email"
                 value={email}
                 placeholder="you@example.co.uk"
