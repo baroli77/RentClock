@@ -704,3 +704,10 @@ input[type="checkbox"] {
   .home-v2-steps-section, .home-v2-two-col { padding-bottom: 38px; }
   .home-v2-cta { padding: 40px 20px; }
 }
+
+
+.home-v2-hero-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.home-v2-sign-in { color: var(--brass); font-size: 14px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.home-v2-sign-in:hover { color: var(--ink); }
+.home-v2-why .home-v2-sign-in { color: #d3dfe6; }
+@media (max-width: 760px) { .home-v2-hero-actions { gap: 12px; } }
