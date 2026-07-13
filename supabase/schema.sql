@@ -8,6 +8,7 @@ create table if not exists public.profiles (
   email text,
   stripe_customer_id text,
   subscription_status text not null default 'none', -- none | trialing | active | past_due | canceled
+  owner_notification_sent_at timestamptz,
   created_at timestamptz not null default now()
 );
 
