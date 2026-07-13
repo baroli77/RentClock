@@ -156,6 +156,9 @@ html, body { margin: 0; padding: 0; background: var(--paper); }
 
 .paywall { border-color: var(--brass); }
 .paywall p { color: var(--grey); max-width: 56ch; }
+.trial-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.trial-note { font-size: 12.5px; margin: 12px 0 0; }
+.trial-error { color: var(--red) !important; font-size: 13px; }
 
 /* Sidebar shell */
 .shell { display: flex; gap: 20px; align-items: flex-start; }
