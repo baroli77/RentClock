@@ -9,6 +9,17 @@ export async function middleware(request) {
     return NextResponse.redirect(url, 308);
   }
 
+  const path = request.nextUrl.pathname;
+  const protectedPath =
+    path.startsWith("/dashboard") ||
+    path.startsWith("/api/data") ||
+    path.startsWith("/api/docs");
+
+  // Public pages do not need a Supabase session check.
+  if (!protectedPath && path !== "/login") {
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -34,8 +45,6 @@ export async function middleware(request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const path = request.nextUrl.pathname;
-  const protectedPath = path.startsWith("/dashboard") || path.startsWith("/api/data") || path.startsWith("/api/docs");
 
   if (protectedPath && !user) {
     if (path.startsWith("/api/")) {
