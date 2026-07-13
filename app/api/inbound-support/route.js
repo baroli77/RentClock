@@ -6,6 +6,7 @@ export const runtime = "nodejs";
 const SUPPORT_ADDRESS = "support@rentclock.com";
 const FORWARD_TO = "obarton77@gmail.com";
 const WEBHOOK_TOLERANCE_SECONDS = 10 * 60;
+const RESEND_API_URL = "https://api.resend.com";
 
 function plainTextFallback(value) {
   return String(value || "")
@@ -47,6 +48,41 @@ function verifySvixSignature({ payload, id, timestamp, signature, webhookSecret 
   if (!valid) {
     throw new Error("Webhook signature does not match.");
   }
+}
+
+async function resendApi(path, apiKey) {
+  const response = await fetch(`${RESEND_API_URL}${path}`, {
+    headers: { Authorization: `Bearer ${apiKey}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Resend API request failed with ${response.status}.`);
+  }
+
+  return response.json();
+}
+
+async function getForwardingAttachments(email, apiKey) {
+  return Promise.all(
+    (email.attachments || []).map(async (attachment) => {
+      const details = await resendApi(
+        `/emails/receiving/${email.id}/attachments/${attachment.id}`,
+        apiKey
+      );
+      const download = await fetch(details.download_url);
+
+      if (!download.ok) {
+        throw new Error(`Could not download attachment ${attachment.filename}`);
+      }
+
+      return {
+        filename: attachment.filename,
+        content: Buffer.from(await download.arrayBuffer()).toString("base64"),
+        contentType: attachment.content_type,
+        ...(attachment.content_id ? { contentId: attachment.content_id } : {}),
+      };
+    })
+  );
 }
 
 export async function POST(request) {
@@ -91,40 +127,20 @@ export async function POST(request) {
     return Response.json({ received: true, ignored: true });
   }
 
-  const resend = new Resend(apiKey);
-  const { data: receivedEmail, error: emailError } = await resend.emails.receiving.get(
-    event.data.email_id
-  );
-
-  if (emailError || !receivedEmail) {
-    console.error("Could not retrieve received support email", emailError);
+  let receivedEmail;
+  let attachments;
+  try {
+    receivedEmail = await resendApi(`/emails/receiving/${event.data.email_id}`, apiKey);
+    attachments = await getForwardingAttachments(receivedEmail, apiKey);
+  } catch (error) {
+    console.error(
+      "Could not retrieve received support email:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
     return Response.json({ error: "Could not retrieve email." }, { status: 502 });
   }
 
-  const { data: attachmentResponse, error: attachmentError } =
-    await resend.emails.receiving.attachments.list({ emailId: event.data.email_id });
-
-  if (attachmentError) {
-    console.error("Could not retrieve support email attachments", attachmentError);
-  }
-
-  const attachments = await Promise.all(
-    (attachmentResponse?.data || []).map(async (attachment) => {
-      const response = await fetch(attachment.download_url);
-
-      if (!response.ok) {
-        throw new Error(`Could not download attachment ${attachment.filename}`);
-      }
-
-      return {
-        filename: attachment.filename,
-        content: Buffer.from(await response.arrayBuffer()).toString("base64"),
-        contentType: attachment.content_type,
-        ...(attachment.content_id ? { contentId: attachment.content_id } : {}),
-      };
-    })
-  );
-
+  const resend = new Resend(apiKey);
   const { error: forwardError } = await resend.emails.send({
     from: "RentClock Support <support@rentclock.com>",
     to: [FORWARD_TO],
