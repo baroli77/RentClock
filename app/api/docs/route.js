@@ -59,10 +59,6 @@ export async function GET(request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-  if (!(await canEdit(supabase, user.id))) {
-    return NextResponse.json({ error: "An active subscription or trial is required to delete documents" }, { status: 403 });
-  }
-
   const path = new URL(request.url).searchParams.get("path");
   if (!path || !path.startsWith(`${user.id}/`)) {
     return NextResponse.json({ error: "Invalid path" }, { status: 400 });
@@ -79,6 +75,9 @@ export async function DELETE(request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  if (!(await canEdit(supabase, user.id))) {
+    return NextResponse.json({ error: "An active subscription or trial is required to delete documents" }, { status: 403 });
+  }
 
   const path = new URL(request.url).searchParams.get("path");
   if (!path || !path.startsWith(`${user.id}/`)) {
