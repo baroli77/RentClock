@@ -20,13 +20,16 @@ export async function POST(request) {
   const admin = createAdminClient();
 
   async function setStatusByCustomer(customerId, status) {
-    await admin
+    if (!customerId) throw new Error("Stripe event has no customer");
+    const { error } = await admin
       .from("profiles")
       .update({ subscription_status: status })
       .eq("stripe_customer_id", customerId);
+    if (error) throw error;
   }
 
-  switch (event.type) {
+  try {
+    switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object;
       // Trial subscriptions start as 'trialing'; paid-immediately as 'active'.
@@ -44,8 +47,12 @@ export async function POST(request) {
       await setStatusByCustomer(sub.customer, "canceled");
       break;
     }
-    default:
-      break;
+      default:
+        break;
+    }
+  } catch (err) {
+    console.error("Stripe webhook processing failed:", err);
+    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
   }
 
   return NextResponse.json({ received: true });
