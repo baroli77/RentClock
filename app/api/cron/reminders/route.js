@@ -102,7 +102,7 @@ export async function GET(request) {
     if (lines.length) {
       try {
         const { html, text } = reminderEmail({ lines, site });
-        await resend.emails.send({
+        const { error: reminderError } = await resend.emails.send({
           from,
           to: profile.email,
           subject:
@@ -112,6 +112,9 @@ export async function GET(request) {
           html,
           text,
         });
+        if (reminderError) {
+          throw new Error(`Resend rejected reminder: ${reminderError.message || JSON.stringify(reminderError)}`);
+        }
         if (logRows.length)
           await admin.from("reminders_sent").upsert(logRows, {
             onConflict: "user_id,property_id,item_key,threshold,due_date",
@@ -155,7 +158,7 @@ export async function GET(request) {
       if (missing.length) {
         try {
           const { html, text } = missingEmail({ items: missing, site });
-          await resend.emails.send({
+          const { error: nagError } = await resend.emails.send({
             from,
             to: profile.email,
             subject:
@@ -165,6 +168,9 @@ export async function GET(request) {
             html,
             text,
           });
+          if (nagError) {
+            throw new Error(`Resend rejected missing-date nag: ${nagError.message || JSON.stringify(nagError)}`);
+          }
           await admin.from("reminders_sent").upsert(missingLog, {
             onConflict: "user_id,property_id,item_key,threshold,due_date",
             ignoreDuplicates: true,
