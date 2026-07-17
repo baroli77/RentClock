@@ -30,3 +30,13 @@ create index if not exists seo_opportunities_status_priority_idx
 
 alter table public.seo_opportunities enable row level security;
 revoke all on table public.seo_opportunities from anon, authenticated;
+
+create policy "service role manages seo admins"
+  on public.seo_admins for all to service_role
+  using (true)
+  with check (true);
+
+create policy "service role manages seo opportunities"
+  on public.seo_opportunities for all to service_role
+  using (true)
+  with check (true);
