@@ -7,6 +7,8 @@ import { reminderEmail, missingEmail } from "@/lib/email";
 
 // Daily cron (see vercel.json). Sends dated-deadline reminders every day and,
 // on Mondays, a nag for certificates that have no date recorded at all.
+// Once an item is overdue it remains in the daily email until the user records
+// its renewal date. Compliance is not a one-and-done problem, unfortunately.
 const THRESHOLDS = [60, 30, 14, 7, 0];
 
 // A stable stamp for the weekly nag dedup, so each run day is one row.
@@ -55,16 +57,23 @@ export async function GET(request) {
       const prop = { ...row.payload, id: row.id };
       for (const { item, st } of datedItems(prop)) {
         // Bucketed catch-up: fire the most urgent crossed threshold not yet
-        // logged. <= matching self-heals a missed cron run.
+        // logged. <= matching self-heals a missed cron run. Overdue items are
+        // deliberately treated differently: they get a fresh log stamp each
+        // day so the reminder keeps arriving until the date is updated.
         let threshold = null;
         if (st.days < 0) {
-          threshold = -1; // overdue - one email per due date
+          threshold = -1; // overdue - one email per day until renewed
         } else {
           const crossed = THRESHOLDS.filter((t) => st.days <= t);
           if (crossed.length) threshold = Math.min(...crossed);
         }
         if (threshold === null) continue;
         const dueISO = toISO(st.due);
+        // For normal reminder thresholds, dedupe against the actual deadline.
+        // For an overdue reminder, dedupe against today's London date instead.
+        // That produces at most one email per item per day, and preserves the
+        // existing reminder log schema/unique index.
+        const reminderStamp = threshold === -1 ? toISO(today()) : dueISO;
 
         const { data: existing } = await admin
           .from("reminders_sent")
@@ -73,7 +82,7 @@ export async function GET(request) {
           .eq("property_id", row.id)
           .eq("item_key", item.key)
           .eq("threshold", threshold)
-          .eq("due_date", dueISO)
+          .eq("due_date", reminderStamp)
           .maybeSingle();
         if (existing) continue;
 
@@ -93,7 +102,7 @@ export async function GET(request) {
             property_id: row.id,
             item_key: item.key,
             threshold: b,
-            due_date: dueISO,
+            due_date: b === -1 ? reminderStamp : dueISO,
           });
         }
       }
