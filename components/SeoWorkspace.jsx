@@ -16,6 +16,7 @@ export default function SeoWorkspace({ initialOpportunities }) {
   const [opportunities, setOpportunities] = useState(initialOpportunities);
   const [form, setForm] = useState(blank);
   const [saving, setSaving] = useState(false);
+  const [draftingId, setDraftingId] = useState(null);
   const [message, setMessage] = useState("");
 
   const stats = useMemo(
@@ -26,6 +27,28 @@ export default function SeoWorkspace({ initialOpportunities }) {
     }),
     [opportunities]
   );
+
+  async function generateDraft(id) {
+    setDraftingId(id);
+    setMessage("");
+    try {
+      const response = await fetch("/api/seo/draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Could not generate draft");
+      setOpportunities((current) =>
+        current.map((item) => (item.id === id ? payload.opportunity : item))
+      );
+      setMessage("AI draft created and marked ready for review.");
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setDraftingId(null);
+    }
+  }
 
   async function addOpportunity(event) {
     event.preventDefault();
@@ -94,7 +117,7 @@ export default function SeoWorkspace({ initialOpportunities }) {
             <li><b>Review then publish</b><span>Keep legal claims and facts under human control before they go live.</span></li>
             <li><b>Measure the win</b><span>Track impressions, clicks, rankings and sign-ups by page.</span></li>
           </ol>
-          <div className="seo-notice"><b>AI drafting is awaiting approval.</b><br />It will send each selected opportunity’s title, keyword, URL and notes to OpenAI to create its draft. It never needs customer property or certificate data.</div>
+          <div className="seo-notice"><b>AI drafting is enabled.</b><br />Each draft sends only that opportunity’s title, keyword, URL and editorial notes to OpenAI. It never reads customer property or certificate data.</div>
         </aside>
       </section>
 
@@ -112,7 +135,19 @@ export default function SeoWorkspace({ initialOpportunities }) {
                   <p><code>{item.primary_keyword}</code> · {item.search_intent} · {item.page_type}</p>
                   {item.notes && <p className="seo-notes">{item.notes}</p>}
                 </div>
-                <div className={"seo-status " + item.status}>{item.status}</div>
+                <div className="seo-item-actions">
+                  <div className={"seo-status " + item.status}>{item.status}</div>
+                  <button className="btn ghost sm" disabled={draftingId === item.id} onClick={() => generateDraft(item.id)}>
+                    {draftingId === item.id ? "Drafting…" : item.draft ? "Redraft with AI" : "Create AI draft"}
+                  </button>
+                </div>
+                {item.draft && (
+                  <div className="seo-draft-preview">
+                    <b>{item.draft.title}</b>
+                    <p>{item.draft.metaDescription}</p>
+                    <span>{item.draft.sections?.length || 0} sections · {item.draft.faqs?.length || 0} FAQs · check sources before publishing</span>
+                  </div>
+                )}
               </article>
             ))}
           </div>
