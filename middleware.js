@@ -16,7 +16,8 @@ export async function middleware(request) {
 
   const path = request.nextUrl.pathname;
   const protectedPath =
-    path.startsWith("/dashboard") ||\n    path.startsWith("/seo") ||
+    path.startsWith("/dashboard") ||
+    path.startsWith("/seo") ||
     path.startsWith("/api/data") ||
     path.startsWith("/api/docs");
 
