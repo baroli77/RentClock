@@ -763,3 +763,10 @@ input[type="checkbox"] {
 .seo-status.drafting { color: var(--amber); background: var(--amber-bg); }
 .seo-empty { color: var(--grey); }
 @media (max-width: 760px) { .seo-hero { padding: 26px 20px; } .seo-grid { grid-template-columns: 1fr; } .seo-field-row { grid-template-columns: 1fr; } .seo-item { grid-template-columns: 40px 1fr; } .seo-status { grid-column: 2; justify-self: start; } }
+
+.seo-item-actions { display: grid; gap: 8px; justify-items: end; }
+.seo-draft-preview { grid-column: 2 / -1; border-top: 1px solid var(--line); padding-top: 12px; color: var(--grey); font-size: 13px; }
+.seo-draft-preview b { display: block; color: var(--ink); font-size: 14px; }
+.seo-draft-preview p { margin: 3px 0 5px; }
+.seo-draft-preview span { color: var(--brass); font: 11px 'IBM Plex Mono', monospace; }
+@media (max-width: 760px) { .seo-item-actions { grid-column: 2; justify-items: start; } .seo-draft-preview { grid-column: 1 / -1; } }
