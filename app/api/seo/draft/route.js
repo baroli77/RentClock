@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { cleanDraft, requireSeoAdmin, seoErrorStatus } from "@/lib/seo";
+import { fetchPublicPageText } from "@/lib/safe-source-url";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,12 @@ export async function POST(request) {
       );
     }
 
-    // The only data sent to OpenAI is the selected SEO content brief below.
+    const sourcePageText = opportunity.source_url
+      ? await fetchPublicPageText(opportunity.source_url)
+      : "";
+
+    // The only data sent to OpenAI is the selected SEO content brief and, when
+    // supplied, visible text fetched from the public reference URL below.
     // No RentClock customer, property, certificate or reminder data is read.
     const prompt = `Create a high-quality UK landlord SEO content brief for RentClock, a SaaS that helps small landlords track compliance deadlines. Do not give personalised legal advice and do not invent laws, dates, penalties or sources. Be genuinely useful and avoid keyword stuffing. Write a publishable guide, not merely an outline: each section must contain two or three concise paragraphs of accurate, plain-English content. Flag facts that need verification rather than making them up.
 
@@ -40,6 +46,7 @@ Search intent: ${opportunity.search_intent}
 Page type: ${opportunity.page_type}
 Existing URL: ${opportunity.source_url || "None"}
 Editor notes: ${opportunity.notes || "None"}
+Reference page text (use for gap analysis; do not copy its wording): ${sourcePageText || "Not supplied"}
 
 Return only valid JSON:
 {
