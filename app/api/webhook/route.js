@@ -6,8 +6,13 @@ import { newMemberEmail } from "@/lib/email";
 
 // Stripe webhook: keeps profiles.subscription_status in sync.
 // Events to enable on the endpoint: checkout.session.completed,
-// customer.subscription.updated, customer.subscription.deleted
+// customer.subscription.updated, customer.subscription.deleted,
+// invoice.paid, invoice.payment_failed
 export async function POST(request) {
+  if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+    console.error("Stripe webhook is not configured");
+    return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });
+  }
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   const body = await request.text();
   const sig = request.headers.get("stripe-signature");
@@ -21,15 +26,27 @@ export async function POST(request) {
 
   const admin = createAdminClient();
 
-  async function setStatusByCustomer(customerId, status) {
+  async function setStatusByCustomer(customerId, status, userId = null) {
     if (!customerId) throw new Error("Stripe event has no customer");
-    const { data, error } = await admin
+    let { data, error } = await admin
       .from("profiles")
       .update({ subscription_status: status })
       .eq("stripe_customer_id", customerId)
       .select("id, email, owner_notification_sent_at")
       .maybeSingle();
     if (error) throw error;
+    // Heal a checkout-time profile linking failure using Stripe's immutable
+    // client_reference_id/metadata rather than leaving a paying user locked out.
+    if (!data && userId) {
+      ({ data, error } = await admin
+        .from("profiles")
+        .update({ stripe_customer_id: customerId, subscription_status: status })
+        .eq("id", userId)
+        .select("id, email, owner_notification_sent_at")
+        .maybeSingle());
+      if (error) throw error;
+    }
+    if (!data) throw new Error("No RentClock profile matched the Stripe customer");
     return data;
   }
 
@@ -39,7 +56,11 @@ export async function POST(request) {
       const session = event.data.object;
       // Trial subscriptions start as 'trialing'; paid-immediately as 'active'.
       const sub = await stripe.subscriptions.retrieve(session.subscription);
-      const profile = await setStatusByCustomer(session.customer, sub.status);
+      const profile = await setStatusByCustomer(
+        session.customer,
+        sub.status,
+        session.client_reference_id || session.metadata?.supabase_user_id || sub.metadata?.supabase_user_id
+      );
 
       // The checkout event can be retried by Stripe. Claim the notification in
       // the database first so the owner only receives one email per member.
@@ -90,6 +111,19 @@ export async function POST(request) {
     case "customer.subscription.deleted": {
       const sub = event.data.object;
       await setStatusByCustomer(sub.customer, "canceled");
+      break;
+    }
+    case "invoice.paid": {
+      const invoice = event.data.object;
+      if (invoice.subscription) {
+        const sub = await stripe.subscriptions.retrieve(invoice.subscription);
+        await setStatusByCustomer(invoice.customer, sub.status, sub.metadata?.supabase_user_id);
+      }
+      break;
+    }
+    case "invoice.payment_failed": {
+      const invoice = event.data.object;
+      await setStatusByCustomer(invoice.customer, "past_due");
       break;
     }
       default:
