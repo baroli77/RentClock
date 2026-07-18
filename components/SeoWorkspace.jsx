@@ -20,6 +20,9 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
   const [publishingId, setPublishingId] = useState(null);
   const [importing, setImporting] = useState(false);
   const [message, setMessage] = useState("");
+  const [researching, setResearching] = useState(false);
+  const [keywordIdeas, setKeywordIdeas] = useState([]);
+  const [researchCost, setResearchCost] = useState(null);
 
   const stats = useMemo(
     () => ({
@@ -69,6 +72,36 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
     } finally {
       setImporting(false);
     }
+  }
+
+  async function researchGuideIdeas() {
+    setResearching(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/seo/keyword-ideas", { method: "POST" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Could not research guide ideas");
+      setKeywordIdeas(payload.ideas || []);
+      setResearchCost(payload.cost || null);
+      setMessage(`Found ${payload.ideas?.length || 0} UK landlord-related search opportunities.`);
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setResearching(false);
+    }
+  }
+
+  function useKeywordIdea(idea) {
+    setForm({
+      ...blank,
+      title: idea.suggestedTitle,
+      primaryKeyword: idea.keyword,
+      searchIntent: idea.intent || "informational",
+      pageType: "guide",
+      priority: String(idea.priority),
+      notes: `DataForSEO estimate: ${idea.searchVolume.toLocaleString("en-GB")} UK searches/month · ${idea.competition || "unknown"} paid competition · keyword difficulty ${idea.difficulty ?? "unknown"}.`,
+    });
+    document.querySelector(".seo-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   async function generateDraft(id) {
@@ -150,6 +183,34 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
             {searchConsole ? "Reconnect Google" : "Connect Google"}
           </a>
         </div>
+      </section>
+
+      <section className="card keyword-research-card">
+        <div>
+          <p className="eyebrow">Keyword research · United Kingdom</p>
+          <h2>Find guides people are already searching for</h2>
+          <p>Checks live Google keyword data for relevant landlord-compliance queries, then ranks useful topics by demand and difficulty. It does not publish anything or spend money until you press the button.</p>
+        </div>
+        <div className="keyword-research-actions">
+          <button className="btn brass" disabled={researching} onClick={researchGuideIdeas}>
+            {researching ? "Researching…" : "Research UK guide ideas"}
+          </button>
+          <span>Typical request cost: a few pence</span>
+        </div>
+        {keywordIdeas.length > 0 && (
+          <div className="keyword-ideas">
+            <div className="keyword-ideas-head"><b>Best opportunities</b><span>{researchCost ? `DataForSEO reported ${Number(researchCost).toFixed(3)} for this refresh` : "Live Google keyword data"}</span></div>
+            {keywordIdeas.map((idea) => (
+              <article className="keyword-idea" key={idea.keyword}>
+                <div>
+                  <b>{idea.keyword}</b>
+                  <span>{idea.searchVolume.toLocaleString("en-GB")} UK searches/month · {idea.intent || "informational"} · {idea.competition || "unknown"} competition · difficulty {idea.difficulty ?? "—"}</span>
+                </div>
+                <button className="btn ghost sm" onClick={() => useKeywordIdea(idea)}>Use in queue</button>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="seo-grid">
