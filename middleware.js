@@ -26,6 +26,20 @@ export async function middleware(request) {
     return NextResponse.next({ request });
   }
 
+  // Keep public entry points usable in environments that intentionally do not
+  // carry production credentials, while failing closed for protected data.
+  if (!supabaseUrl || !supabaseKey) {
+    if (protectedPath && path.startsWith("/api/")) {
+      return NextResponse.json({ error: "Authentication is unavailable" }, { status: 503 });
+    }
+    if (protectedPath) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(supabaseUrl, supabaseKey, {
