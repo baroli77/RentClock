@@ -9,14 +9,20 @@ export const metadata = { title: "SEO workspace" };
 export default async function SeoPage() {
   const supabase = await createClient();
   try {
-    const { admin } = await requireSeoAdmin(supabase);
+    const { user, admin } = await requireSeoAdmin(supabase);
     const { data: opportunities } = await admin
       .from("seo_opportunities")
       .select("*")
       .order("priority", { ascending: false })
       .order("created_at", { ascending: false });
 
-    return <SeoWorkspace initialOpportunities={opportunities || []} />;
+    const { data: searchConsole } = await admin
+      .from("search_console_connections")
+      .select("selected_property, properties, connected_at, last_imported_at")
+      .eq("owner_email", user.email.toLowerCase())
+      .maybeSingle();
+
+    return <SeoWorkspace initialOpportunities={opportunities || []} searchConsole={searchConsole} />;
   } catch {
     redirect("/dashboard");
   }
