@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { requireSeoAdmin } from "@/lib/seo";
+import { requireSeoAdmin, seoErrorStatus } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +16,7 @@ export async function GET() {
     if (error) throw new Error(error.message);
     return NextResponse.json({ opportunities: data || [] });
   } catch (error) {
-    return NextResponse.json({ error: error.message || "Unable to load SEO opportunities" }, { status: 403 });
+    return NextResponse.json({ error: error.message || "Unable to load SEO opportunities" }, { status: seoErrorStatus(error, 500) });
   }
 }
 
@@ -53,6 +53,6 @@ export async function POST(request) {
     if (error) throw new Error(error.message);
     return NextResponse.json({ opportunity: data }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: error.message || "Unable to save opportunity" }, { status: 400 });
+    return NextResponse.json({ error: error.message || "Unable to save opportunity" }, { status: seoErrorStatus(error, 400) });
   }
 }
