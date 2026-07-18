@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { requireSeoAdmin } from "@/lib/seo";
+import { requireSeoAdmin, seoErrorStatus } from "@/lib/seo";
 import { decryptToken, googleAccessToken } from "@/lib/search-console";
 
 export const dynamic = "force-dynamic";
@@ -91,6 +91,6 @@ export async function POST() {
 
     return NextResponse.json({ imported: insertions.length, scanned: rows.length });
   } catch (error) {
-    return NextResponse.json({ error: error.message || "Unable to import Search Console queries." }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Unable to import Search Console queries." }, { status: seoErrorStatus(error, 500) });
   }
 }
