@@ -31,7 +31,7 @@ begin
   on conflict (id) do nothing;
   return new;
 end;
-$;
+$$;
 
 -- Trigger-only function: do not expose it as an RPC endpoint.
 revoke execute on function public.handle_new_user() from public, anon, authenticated;
