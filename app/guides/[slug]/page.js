@@ -1,15 +1,36 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GUIDES, getGuide } from "@/lib/guides";
+import { getPublishedGuide } from "@/lib/published-guides";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com";
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
-  return GUIDES.map((g) => ({ slug: g.slug }));
+  return GUIDES.map((guide) => ({ slug: guide.slug }));
 }
 
-export function generateMetadata({ params }) {
-  const guide = getGuide(params.slug);
+function normaliseGuide(guide) {
+  if (!guide) return null;
+  return {
+    ...guide,
+    sections: (guide.sections || []).map((section) => ({
+      heading: section.h || section.heading,
+      paragraphs: section.p || section.paragraphs || section.points || [],
+    })),
+    faqs: (guide.faqs || []).map((faq) => ({
+      question: faq.q || faq.question,
+      answer: faq.a || faq.answer,
+    })),
+  };
+}
+
+async function findGuide(slug) {
+  return normaliseGuide(getGuide(slug) || (await getPublishedGuide(slug)));
+}
+
+export async function generateMetadata({ params }) {
+  const guide = await findGuide(params.slug);
   if (!guide) return {};
   return {
     title: guide.title,
@@ -20,27 +41,16 @@ export function generateMetadata({ params }) {
       title: guide.title,
       description: guide.description,
       url: `${SITE}/guides/${guide.slug}`,
-      images: [
-        {
-          url: "/opengraph-image",
-          width: 1200,
-          height: 630,
-          alt: "RentClock — compliance deadlines for small landlords",
-        },
-      ],
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "RentClock — compliance deadlines for small landlords" }],
     },
-    twitter: {
-      card: "summary_large_image",
-      images: ["/opengraph-image"],
-    },
+    twitter: { card: "summary_large_image", images: ["/opengraph-image"] },
   };
 }
 
-export default function GuidePage({ params }) {
-  const guide = getGuide(params.slug);
+export default async function GuidePage({ params }) {
+  const guide = await findGuide(params.slug);
   if (!guide) notFound();
 
-  // JSON-LD: Article + FAQ structured data for rich results
   const articleLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -50,114 +60,54 @@ export default function GuidePage({ params }) {
     dateModified: guide.updated,
     image: `${SITE}/opengraph-image`,
     author: { "@type": "Organization", name: "RentClock", url: SITE },
-    publisher: {
-      "@type": "Organization",
-      name: "RentClock",
-      url: SITE,
-      logo: { "@type": "ImageObject", url: `${SITE}/opengraph-image` },
-    },
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": `${SITE}/guides/${guide.slug}`,
-    },
-  };
-  const breadcrumbLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: SITE },
-      { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE}/guides` },
-      { "@type": "ListItem", position: 3, name: guide.title, item: `${SITE}/guides/${guide.slug}` },
-    ],
+    publisher: { "@type": "Organization", name: "RentClock", url: SITE },
+    mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE}/guides/${guide.slug}` },
   };
   const faqLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: guide.faqs.map((f) => ({
+    mainEntity: guide.faqs.map((faq) => ({
       "@type": "Question",
-      name: f.q,
-      acceptedAnswer: { "@type": "Answer", text: f.a },
+      name: faq.question,
+      acceptedAnswer: { "@type": "Answer", text: faq.answer },
     })),
   };
 
   return (
     <div className="app">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
-      />
-
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }} />
+      {guide.faqs.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />}
       <header className="masthead">
-        <div className="brand">
-          <Link href="/" className="brand-link">
-            <svg className="brand-mark" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> RentClock
-          </Link>
-        </div>
-        <nav className="nav">
-          <Link href="/guides">Guides</Link>
-          <Link href="/login" className="btn primary sm">Sign in</Link>
-        </nav>
+        <div className="brand"><Link href="/" className="brand-link">⌑ <b>RentClock</b></Link></div>
+        <nav className="nav"><Link href="/guides">Guides</Link><Link href="/login" className="btn primary sm">Sign in</Link></nav>
       </header>
 
       <article className="article">
-        <div className="eyebrow">
-          <Link href="/guides" className="crumb">Guides</Link> · {guide.readMins} min read
-        </div>
+        <div className="eyebrow"><Link href="/guides" className="crumb">Guides</Link> · {guide.readMins} min read</div>
         <h1 className="article-h1">{guide.title}</h1>
         <p className="article-intro">{guide.intro}</p>
 
-        {guide.sections.map((s, i) => (
-          <section key={i} className="article-section">
-            <h2>{s.h}</h2>
-            {s.p.map((para, j) => (
-              <p key={j}>{para}</p>
-            ))}
+        {guide.sections.map((section, index) => (
+          <section key={index} className="article-section">
+            <h2>{section.heading}</h2>
+            {section.paragraphs.map((paragraph, item) => <p key={item}>{paragraph}</p>)}
           </section>
         ))}
 
-        <section className="article-section">
+        {guide.faqs.length > 0 && <section className="article-section">
           <h2>Frequently asked questions</h2>
-          {guide.faqs.map((f, i) => (
-            <div key={i} className="faq-item">
-              <b>{f.q}</b>
-              <p>{f.a}</p>
-            </div>
-          ))}
-        </section>
+          {guide.faqs.map((faq, index) => <div key={index} className="faq-item"><b>{faq.question}</b><p>{faq.answer}</p></div>)}
+        </section>}
 
         <aside className="article-cta card">
           <h3>RentClock tracks all of this for you</h3>
-          <p>
-            Add your properties and RentClock builds the checklist, counts down every
-            renewal, and emails you before anything lapses. £5.99/month, unlimited
-            properties, 14-day free trial.
-          </p>
+          <p>Add your properties and RentClock builds the checklist, counts down every renewal, and emails you before anything lapses.</p>
           <Link href="/login" className="btn brass">Start your free trial</Link>
         </aside>
-
-        <p className="article-disclaimer">
-          This guide is general information, not legal advice, and reflects the rules
-          as they stood when last updated ({guide.updated}). Always check GOV.UK or a
-          professional for your specific situation.
-        </p>
+        <p className="article-disclaimer">This guide is general information, not legal advice. Always check GOV.UK or a professional for your specific situation.</p>
       </article>
 
-      <footer className="foot">
-        <p>RentClock is a deadline ledger, not legal advice. Made in the UK.</p>
-        <nav className="foot-links" aria-label="Legal">
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/terms">Terms</Link>
-          <Link href="/contact">Contact</Link>
-        </nav>
-      </footer>
+      <footer className="foot"><p>RentClock is a deadline ledger, not legal advice. Made in the UK.</p></footer>
     </div>
   );
 }
