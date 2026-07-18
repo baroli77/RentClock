@@ -83,7 +83,9 @@ export async function POST(request) {
   }
 
   const openSessions = await stripe.checkout.sessions.list({ customer: customerId, status: "open", limit: 10 });
-  const reusableSession = openSessions.data.find((item) => item.mode === "subscription" && item.url);
+  const reusableSession = openSessions.data.find(
+    (item) => item.mode === "subscription" && item.metadata?.plan === plan && item.url
+  );
   if (reusableSession) return NextResponse.json({ url: reusableSession.url, reused: true });
 
   const site = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
