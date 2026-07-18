@@ -71,3 +71,6 @@ create policy "service role manages search console oauth states"
 
 -- Imported Search Console metrics stored with each opportunity.
 alter table public.seo_opportunities add column if not exists search_metrics jsonb;
+
+-- Public guide publication date.
+alter table public.seo_opportunities add column if not exists published_at timestamptz;
