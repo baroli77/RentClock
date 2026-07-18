@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { decryptToken, encryptToken, exchangeCode, googleAccessToken, listSearchConsoleProperties, siteUrl } from "@/lib/search-console";
+import { encryptToken, exchangeCode, googleAccessToken, listSearchConsoleProperties, siteUrl } from "@/lib/search-console";
 
 export const dynamic = "force-dynamic";
 
