@@ -12,7 +12,7 @@ const blank = {
   notes: "",
 };
 
-export default function SeoWorkspace({ initialOpportunities }) {
+export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
   const [opportunities, setOpportunities] = useState(initialOpportunities);
   const [form, setForm] = useState(blank);
   const [saving, setSaving] = useState(false);
@@ -87,6 +87,22 @@ export default function SeoWorkspace({ initialOpportunities }) {
           <span><b>{stats.total}</b> opportunities</span>
           <span><b>{stats.high}</b> high-priority</span>
           <span><b>{stats.ready}</b> ready to review</span>
+        </div>
+      </section>
+
+      <section className="card search-console-card">
+        <div>
+          <p className="eyebrow">Google Search Console</p>
+          <h2>{searchConsole ? "Connected — read-only" : "Connect performance data"}</h2>
+          <p>{searchConsole
+            ? `Using ${searchConsole.selected_property || "your selected property"}. The next step imports queries, impressions, clicks and rankings into this queue.`
+            : "Connect the Google account that owns RentClock to discover real searches, pages close to page one and content gaps."}</p>
+        </div>
+        <div className="search-console-actions">
+          {searchConsole && <span className="seo-status ready">connected</span>}
+          <a className={"btn " + (searchConsole ? "ghost" : "primary")} href="/api/seo/search-console/connect">
+            {searchConsole ? "Reconnect Google" : "Connect Google"}
+          </a>
         </div>
       </section>
 
