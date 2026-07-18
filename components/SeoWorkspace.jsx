@@ -216,6 +216,24 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
                     <b>{item.draft.title}</b>
                     <p>{item.draft.metaDescription}</p>
                     <span>{item.draft.sections?.length || 0} sections · {item.draft.faqs?.length || 0} FAQs · verify listed sources before publishing</span>
+                    <details className="seo-draft-details">
+                      <summary>Review full draft before publishing</summary>
+                      <p className="seo-draft-intro">{item.draft.intro}</p>
+                      {(item.draft.sections || []).map((section, index) => (
+                        <section key={index}>
+                          <h4>{section.heading}</h4>
+                          {(section.paragraphs || section.points || []).map((paragraph, paragraphIndex) => <p key={paragraphIndex}>{paragraph}</p>)}
+                        </section>
+                      ))}
+                      {(item.draft.faqs || []).length > 0 && <section>
+                        <h4>FAQs</h4>
+                        {item.draft.faqs.map((faq, index) => <p key={index}><b>{faq.question}</b><br />{faq.answer}</p>)}
+                      </section>}
+                      <section className="seo-source-list">
+                        <h4>Sources to verify</h4>
+                        <ul>{(item.draft.sourcesToVerify || []).map((source, index) => <li key={index}>{source}</li>)}</ul>
+                      </section>
+                    </details>
                   </div>
                 )}
               </article>
