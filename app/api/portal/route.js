@@ -17,11 +17,16 @@ export async function POST() {
   if (!user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
 
   const admin = createAdminClient();
-  const { data: profile } = await admin
+  const { data: profile, error: profileError } = await admin
     .from("profiles")
     .select("stripe_customer_id")
     .eq("id", user.id)
     .single();
+
+  if (profileError) {
+    console.error("Billing portal could not load profile:", profileError.message);
+    return NextResponse.json({ error: "Could not load your billing account" }, { status: 500 });
+  }
 
   if (!profile?.stripe_customer_id) {
     return NextResponse.json({ error: "No billing account yet" }, { status: 400 });
