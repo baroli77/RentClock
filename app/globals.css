@@ -770,3 +770,9 @@ input[type="checkbox"] {
 .seo-draft-preview p { margin: 3px 0 5px; }
 .seo-draft-preview span { color: var(--brass); font: 11px 'IBM Plex Mono', monospace; }
 @media (max-width: 760px) { .seo-item-actions { grid-column: 2; justify-items: start; } .seo-draft-preview { grid-column: 1 / -1; } }
+
+.search-console-card { margin: 20px 0; padding: 20px 22px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-color: #cdb67b; }
+.search-console-card h2 { font: 600 20px 'Bricolage Grotesque', sans-serif; margin: 0 0 4px; letter-spacing: -.02em; }
+.search-console-card p:not(.eyebrow) { margin: 0; color: var(--grey); max-width: 650px; font-size: 14px; }
+.search-console-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+@media (max-width: 760px) { .search-console-card { align-items: flex-start; flex-direction: column; } }
