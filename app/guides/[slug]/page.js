@@ -59,7 +59,8 @@ function getRelatedGuides(catalog, current) {
 }
 
 export async function generateMetadata({ params }) {
-  const guide = await findGuide(params.slug);
+  const { slug } = await params;
+  const guide = await findGuide(slug);
   if (!guide) return {};
   return {
     title: guide.title,
@@ -77,8 +78,9 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function GuidePage({ params }) {
+  const { slug } = await params;
   const catalog = await getGuideCatalog();
-  const guide = catalog.find((item) => item.slug === String(params.slug || "").toLowerCase());
+  const guide = catalog.find((item) => item.slug === String(slug || "").toLowerCase());
   if (!guide) notFound();
   const relatedGuides = getRelatedGuides(catalog, guide);
 
