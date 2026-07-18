@@ -6,6 +6,19 @@ export const metadata = {
   description:
     "RentClock is £5.99/month or £59.90/year for unlimited properties. Full compliance checklist, email reminders, document vault, and a 14-day free trial.",
   alternates: { canonical: "/pricing" },
+  openGraph: {
+    type: "website",
+    url: "/pricing",
+    title: "RentClock pricing — £5.99/month, unlimited properties",
+    description:
+      "One simple plan for small landlords: compliance deadlines, email reminders and document storage for unlimited properties.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "RentClock pricing — £5.99/month, unlimited properties",
+    description:
+      "Compliance deadlines, email reminders and document storage for unlimited properties.",
+  },
 };
 
 export default function Pricing() {
