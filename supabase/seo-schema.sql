@@ -68,3 +68,6 @@ revoke all on table public.search_console_oauth_states from anon, authenticated;
 create policy "service role manages search console oauth states"
   on public.search_console_oauth_states for all to service_role
   using (true) with check (true);
+
+-- Imported Search Console metrics stored with each opportunity.
+alter table public.seo_opportunities add column if not exists search_metrics jsonb;
