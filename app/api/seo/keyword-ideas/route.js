@@ -15,19 +15,33 @@ const SEED_KEYWORDS = [
   "landlord responsibilities",
 ];
 
-const RELEVANT_TERMS = [
-  "landlord",
-  "tenant",
-  "tenancy",
-  "rent",
-  "rental",
-  "eicr",
-  "epc",
-  "gas safety",
-  "deposit",
-  "right to rent",
-  "hmo",
+const RELEVANT_PATTERNS = [
+  /\blandlord\b/i,
+  /\blandlord registration\b/i,
+  /\btenancy deposit\b/i,
+  /\bdeposit protection\b/i,
+  /\bgas safety\b/i,
+  /\bgas certificate\b/i,
+  /\beicr\b/i,
+  /\belectrical safety\b/i,
+  /\bepc\b/i,
+  /\bright to rent\b/i,
+  /\bshare code\b/i,
+  /\bhmo\b/i,
+  /\bhouse in multiple occupation\b/i,
+  /\brenters'? rights\b/i,
+  /\bsection 21\b/i,
+  /\bproperty licensing\b/i,
+  /\bselective licensing\b/i,
+  /\bfire safety\b/i,
 ];
+
+function isRelevantGuideIdea(item) {
+  const keyword = String(item.keyword || "").trim();
+  const intent = String(item.search_intent_info?.main_intent || "").toLowerCase();
+  if (!keyword || intent === "navigational") return false;
+  return RELEVANT_PATTERNS.some((pattern) => pattern.test(keyword));
+}
 
 function suggestedTitle(keyword) {
   return `UK landlord guide: ${keyword.replace(/\b\w/g, (letter) => letter.toUpperCase())}`;
@@ -81,10 +95,7 @@ export async function POST() {
 
     const seen = new Set();
     const ideas = (task.result?.[0]?.items || [])
-      .filter((item) => {
-        const keyword = String(item.keyword || "").toLowerCase();
-        return keyword && RELEVANT_TERMS.some((term) => keyword.includes(term));
-      })
+      .filter(isRelevantGuideIdea)
       .map((item) => ({
         keyword: item.keyword,
         suggestedTitle: suggestedTitle(item.keyword),
