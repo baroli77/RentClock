@@ -29,11 +29,6 @@ export async function POST(request) {
       );
     }
 
-    await admin
-      .from("seo_opportunities")
-      .update({ status: "drafting", updated_at: new Date().toISOString() })
-      .eq("id", id);
-
     // The only data sent to OpenAI is the selected SEO content brief below.
     // No RentClock customer, property, certificate or reminder data is read.
     const prompt = `Create a high-quality UK landlord SEO content brief for RentClock, a SaaS that helps small landlords track compliance deadlines. Do not give personalised legal advice and do not invent laws, dates, penalties or sources. Be genuinely useful and avoid keyword stuffing. Write a publishable guide, not merely an outline: each section must contain two or three concise paragraphs of accurate, plain-English content. Flag facts that need verification rather than making them up.
@@ -81,9 +76,10 @@ Return only valid JSON:
       result.output?.flatMap((item) => item.content || []).find((part) => part.type === "output_text")?.text;
     const draft = cleanDraft(output);
 
+    const nextStatus = opportunity.status === "published" ? "published" : "ready";
     const { data: saved, error: saveError } = await admin
       .from("seo_opportunities")
-      .update({ draft, status: "ready", updated_at: new Date().toISOString() })
+      .update({ draft, status: nextStatus, updated_at: new Date().toISOString() })
       .eq("id", id)
       .select()
       .single();
