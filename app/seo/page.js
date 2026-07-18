@@ -4,7 +4,11 @@ import { requireSeoAdmin } from "@/lib/seo";
 import SeoWorkspace from "@/components/SeoWorkspace";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "SEO workspace" };
+export const metadata = {
+  title: "SEO workspace",
+  alternates: { canonical: "/seo" },
+  robots: { index: false, follow: false },
+};
 
 export default async function SeoPage() {
   const supabase = await createClient();
