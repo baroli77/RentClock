@@ -776,3 +776,12 @@ input[type="checkbox"] {
 .search-console-card p:not(.eyebrow) { margin: 0; color: var(--grey); max-width: 650px; font-size: 14px; }
 .search-console-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 @media (max-width: 760px) { .search-console-card { align-items: flex-start; flex-direction: column; } }
+
+.seo-draft-details { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; color: #333b47; }
+.seo-draft-details summary { cursor: pointer; color: var(--brass); font-weight: 600; }
+.seo-draft-details h4 { color: var(--ink); font: 600 15px 'Bricolage Grotesque', sans-serif; margin: 18px 0 6px; }
+.seo-draft-details p { font-size: 13px; line-height: 1.55; color: #414854; }
+.seo-draft-intro { color: var(--ink) !important; font-size: 14px !important; }
+.seo-source-list { border-left: 3px solid var(--amber); background: var(--amber-bg); padding: 8px 12px; margin-top: 16px; }
+.seo-source-list h4 { margin-top: 2px; }
+.seo-source-list ul { margin: 6px 0 2px; padding-left: 18px; font-size: 12px; }
