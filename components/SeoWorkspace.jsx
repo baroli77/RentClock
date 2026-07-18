@@ -17,6 +17,7 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
   const [form, setForm] = useState(blank);
   const [saving, setSaving] = useState(false);
   const [draftingId, setDraftingId] = useState(null);
+  const [importing, setImporting] = useState(false);
   const [message, setMessage] = useState("");
 
   const stats = useMemo(
@@ -27,6 +28,22 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
     }),
     [opportunities]
   );
+
+  async function importSearchConsole() {
+    setImporting(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/seo/search-console/import", { method: "POST" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Could not import Google data");
+      setMessage(`Imported ${payload.imported} new opportunities from ${payload.scanned} useful Google queries.`);
+      window.location.reload();
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setImporting(false);
+    }
+  }
 
   async function generateDraft(id) {
     setDraftingId(id);
@@ -100,6 +117,9 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
         </div>
         <div className="search-console-actions">
           {searchConsole && <span className="seo-status ready">connected</span>}
+          {searchConsole && <button className="btn primary" disabled={importing} onClick={importSearchConsole}>
+            {importing ? "Importing…" : "Import Google queries"}
+          </button>}
           <a className={"btn " + (searchConsole ? "ghost" : "primary")} href="/api/seo/search-console/connect">
             {searchConsole ? "Reconnect Google" : "Connect Google"}
           </a>
