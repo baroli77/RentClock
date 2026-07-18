@@ -20,6 +20,10 @@ create table if not exists public.seo_opportunities (
   source_url text,
   notes text,
   draft jsonb,
+  published_draft jsonb,
+  first_published_at timestamptz,
+  published_at timestamptz,
+  search_metrics jsonb,
   created_by text not null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -63,14 +67,17 @@ create table if not exists public.search_console_oauth_states (
   expires_at timestamptz not null,
   created_at timestamptz not null default now()
 );
+create index if not exists search_console_oauth_states_owner_email_idx
+  on public.search_console_oauth_states (owner_email);
 alter table public.search_console_oauth_states enable row level security;
 revoke all on table public.search_console_oauth_states from anon, authenticated;
 create policy "service role manages search console oauth states"
   on public.search_console_oauth_states for all to service_role
   using (true) with check (true);
 
--- Imported Search Console metrics stored with each opportunity.
+-- Keep this script safe for projects that created the workspace before the
+-- publication fields were added.
 alter table public.seo_opportunities add column if not exists search_metrics jsonb;
-
--- Public guide publication date.
 alter table public.seo_opportunities add column if not exists published_at timestamptz;
+alter table public.seo_opportunities add column if not exists published_draft jsonb;
+alter table public.seo_opportunities add column if not exists first_published_at timestamptz;

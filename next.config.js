@@ -20,8 +20,10 @@ const securityHeaders = [
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
 ];
 
-module.exports = {
+const nextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
 };
+
+export default nextConfig;

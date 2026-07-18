@@ -17,10 +17,29 @@ function weekStamp() {
   return toISO(today());
 }
 
+const REMINDER_CONFLICT = "user_id,property_id,item_key,threshold,due_date";
+
+async function claimReminder(admin, row) {
+  const { data, error } = await admin
+    .from("reminders_sent")
+    .upsert(row, { onConflict: REMINDER_CONFLICT, ignoreDuplicates: true })
+    .select("id")
+    .maybeSingle();
+  if (error) throw new Error(`Could not claim reminder: ${error.message}`);
+  return data?.id || null;
+}
+
+async function releaseClaims(admin, ids) {
+  if (!ids.length) return;
+  const { error } = await admin.from("reminders_sent").delete().in("id", ids);
+  if (error) console.error("Could not release failed reminder claims:", error.message);
+}
+
 export async function GET(request) {
   // Vercel Cron sends Authorization: Bearer {CRON_SECRET}
   const auth = request.headers.get("authorization");
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  const cronSecret = process.env.CRON_SECRET?.trim();
+  if (!cronSecret || auth !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
   }
   if (!process.env.RESEND_API_KEY) {
@@ -38,20 +57,27 @@ export async function GET(request) {
 
   let sent = 0;
   let nags = 0;
+  let failures = 0;
   const site = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com";
-  const from = "RentClock <support@rentclock.com>";
+  const from = process.env.REMINDER_FROM || "RentClock <support@rentclock.com>";
 
   for (const profile of profiles || []) {
     if (!profile.email || !hasAccess(profile)) continue;
 
-    const { data: rows } = await admin
+    const { data: rows, error: rowsError } = await admin
       .from("properties")
       .select("id, payload")
       .eq("user_id", profile.id);
+    if (rowsError) {
+      failures += 1;
+      console.error(`Could not load properties for ${profile.id}:`, rowsError.message);
+      continue;
+    }
 
     // ---------- 1. Dated deadline reminders (daily) ----------
     const lines = [];
     const logRows = [];
+    const claimIds = [];
 
     for (const row of rows || []) {
       const prop = { ...row.payload, id: row.id };
@@ -75,16 +101,15 @@ export async function GET(request) {
         // existing reminder log schema/unique index.
         const reminderStamp = threshold === -1 ? toISO(today()) : dueISO;
 
-        const { data: existing } = await admin
-          .from("reminders_sent")
-          .select("id")
-          .eq("user_id", profile.id)
-          .eq("property_id", row.id)
-          .eq("item_key", item.key)
-          .eq("threshold", threshold)
-          .eq("due_date", reminderStamp)
-          .maybeSingle();
-        if (existing) continue;
+        const claimId = await claimReminder(admin, {
+          user_id: profile.id,
+          property_id: row.id,
+          item_key: item.key,
+          threshold,
+          due_date: reminderStamp,
+        });
+        if (!claimId) continue;
+        claimIds.push(claimId);
 
         const status =
           st.days < 0
@@ -109,6 +134,7 @@ export async function GET(request) {
     }
 
     if (lines.length) {
+      let emailDelivered = false;
       try {
         const { html, text } = reminderEmail({ lines, site });
         const { error: reminderError } = await resend.emails.send({
@@ -124,13 +150,18 @@ export async function GET(request) {
         if (reminderError) {
           throw new Error(`Resend rejected reminder: ${reminderError.message || JSON.stringify(reminderError)}`);
         }
-        if (logRows.length)
-          await admin.from("reminders_sent").upsert(logRows, {
-            onConflict: "user_id,property_id,item_key,threshold,due_date",
+        emailDelivered = true;
+        if (logRows.length) {
+          const { error: logError } = await admin.from("reminders_sent").upsert(logRows, {
+            onConflict: REMINDER_CONFLICT,
             ignoreDuplicates: true,
           });
+          if (logError) throw new Error(`Could not finalise reminder log: ${logError.message}`);
+        }
         sent += 1;
       } catch (e) {
+        failures += 1;
+        if (!emailDelivered) await releaseClaims(admin, claimIds);
         console.error(`Reminder failed for ${profile.email}:`, e.message);
       }
     }
@@ -139,20 +170,20 @@ export async function GET(request) {
     if (isMonday) {
       const missing = [];
       const missingLog = [];
+      const missingClaimIds = [];
       const stamp = weekStamp();
       for (const row of rows || []) {
         const prop = { ...row.payload, id: row.id };
         for (const { item } of missingItems(prop)) {
-          const { data: existing } = await admin
-            .from("reminders_sent")
-            .select("id")
-            .eq("user_id", profile.id)
-            .eq("property_id", row.id)
-            .eq("item_key", item.key)
-            .eq("threshold", -2) // -2 reserved for the missing-date nag
-            .eq("due_date", stamp)
-            .maybeSingle();
-          if (existing) continue;
+          const claimId = await claimReminder(admin, {
+            user_id: profile.id,
+            property_id: row.id,
+            item_key: item.key,
+            threshold: -2,
+            due_date: stamp,
+          });
+          if (!claimId) continue;
+          missingClaimIds.push(claimId);
           missing.push({ item: item.label, property: prop.name || "Your property" });
           missingLog.push({
             user_id: profile.id,
@@ -165,6 +196,7 @@ export async function GET(request) {
       }
 
       if (missing.length) {
+        let emailDelivered = false;
         try {
           const { html, text } = missingEmail({ items: missing, site });
           const { error: nagError } = await resend.emails.send({
@@ -180,17 +212,24 @@ export async function GET(request) {
           if (nagError) {
             throw new Error(`Resend rejected missing-date nag: ${nagError.message || JSON.stringify(nagError)}`);
           }
-          await admin.from("reminders_sent").upsert(missingLog, {
-            onConflict: "user_id,property_id,item_key,threshold,due_date",
+          emailDelivered = true;
+          const { error: missingLogError } = await admin.from("reminders_sent").upsert(missingLog, {
+            onConflict: REMINDER_CONFLICT,
             ignoreDuplicates: true,
           });
+          if (missingLogError) throw new Error(`Could not finalise nag log: ${missingLogError.message}`);
           nags += 1;
         } catch (e) {
+          failures += 1;
+          if (!emailDelivered) await releaseClaims(admin, missingClaimIds);
           console.error(`Nag failed for ${profile.email}:`, e.message);
         }
       }
     }
   }
 
-  return NextResponse.json({ ok: true, emailsSent: sent, nagsSent: nags });
+  return NextResponse.json(
+    { ok: failures === 0, emailsSent: sent, nagsSent: nags, failures },
+    { status: failures ? 500 : 200 }
+  );
 }

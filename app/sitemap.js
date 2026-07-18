@@ -2,6 +2,7 @@ import { GUIDES } from "@/lib/guides";
 import { getPublishedGuides } from "@/lib/published-guides";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com";
+export const revalidate = 3600;
 
 export default async function sitemap() {
   const staticPages = [
@@ -21,5 +22,7 @@ export default async function sitemap() {
     changeFrequency: "monthly",
     priority: 0.6,
   }));
-  return [...staticPages, ...staticGuides, ...publishedGuides];
+  const guidesByUrl = new Map();
+  for (const guide of [...staticGuides, ...publishedGuides]) guidesByUrl.set(guide.url, guide);
+  return [...staticPages, ...guidesByUrl.values()];
 }

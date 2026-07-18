@@ -55,9 +55,10 @@ export async function POST() {
       .sort((a, b) => priorityFor(b) - priorityFor(a))
       .slice(0, 40);
 
-    const { data: existing } = await admin
+    const { data: existing, error: existingError } = await admin
       .from("seo_opportunities")
       .select("primary_keyword");
+    if (existingError) throw new Error(existingError.message);
     const known = new Set((existing || []).map((item) => item.primary_keyword.toLowerCase()));
 
     const insertions = rows
@@ -84,10 +85,11 @@ export async function POST() {
       if (insertError) throw new Error(insertError.message);
     }
 
-    await admin
+    const { error: importStampError } = await admin
       .from("search_console_connections")
       .update({ last_imported_at: new Date().toISOString() })
       .eq("owner_email", email);
+    if (importStampError) throw new Error(importStampError.message);
 
     return NextResponse.json({ imported: insertions.length, scanned: rows.length });
   } catch (error) {

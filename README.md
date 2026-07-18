@@ -16,13 +16,13 @@ cp .env.example .env.local
 Fill in `.env.local`:
 
 - **Supabase** → project dashboard → Settings → API. Copy the URL, `anon` key, and `service_role` key.
-- **Stripe** → leave blank for now if you want. With no Stripe keys the app runs in "dev mode" — everyone has access, no paywall. Wire it in step 4.
+- **Stripe** → leave blank for local development if needed. Billing fails closed in production if its required variables are missing.
 - **Resend** → leave blank for now too. The cron route will just refuse to run.
 - **CRON_SECRET** → any long random string.
 
 ## 2. Database
 
-Supabase dashboard → SQL Editor → New query → paste the whole of `supabase/schema.sql` → Run.
+The versioned source of truth is `supabase/migrations`. For a fresh local project, run `supabase db reset`; for a linked remote project, review `supabase migration list` and then run `supabase db push`. The standalone `supabase/schema.sql` and `supabase/seo-schema.sql` files are readable snapshots, not a replacement for migration history.
 
 That creates: `profiles` (auto-created on signup via trigger, holds billing state), `properties` (one row per property, RLS locked to the owner), `reminders_sent` (duplicate-email protection), and a private `certs` storage bucket where users can only touch their own folder.
 
@@ -38,7 +38,7 @@ Go to `http://localhost:3000`, sign in with your email, click the magic link, ad
 
 ## 4. Stripe
 
-1. Stripe dashboard (test mode) → Products → create "RentClock", recurring, £6/month. Copy the price ID into `STRIPE_PRICE_ID`.
+1. Stripe dashboard (test mode) → Products → create "RentClock", recurring, £5.99/month and optionally £59.90/year. Copy the price IDs into `STRIPE_PRICE_ID` and `STRIPE_PRICE_ID_ANNUAL`.
 2. Copy the test secret key into `STRIPE_SECRET_KEY`.
 3. Install the Stripe CLI, then:
    ```bash
@@ -69,7 +69,7 @@ Both directions must work before launch. This is the step people screw up.
 2. Add every var from `.env.local` to Vercel → Settings → Environment Variables. Change `NEXT_PUBLIC_SITE_URL` to your live domain.
 3. Add your domain in Vercel → Domains, follow the DNS instructions.
 4. Supabase → Authentication → URL Configuration → add your live domain + `/auth/callback`.
-5. Stripe → Developers → Webhooks → Add endpoint: `https://yourdomain.co.uk/api/webhook`, events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Copy the live `whsec_...` into Vercel env vars.
+5. Stripe → Developers → Webhooks → Add endpoint: `https://yourdomain.co.uk/api/webhook`, events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, and `invoice.payment_failed`. Copy the live `whsec_...` into Vercel env vars.
 6. Flip Stripe to live mode, create the live product/price, swap in live keys.
 7. Subscribe yourself with a real card. Confirm trial → access → reminder email → cancellation → lockout. Refund yourself.
 
@@ -84,7 +84,7 @@ Both directions must work before launch. This is the step people screw up.
 - `lib/compliance.js` — all statutory rules and status logic, shared by UI and cron. Change a renewal interval in one place.
 - `properties.payload` is jsonb — the whole property object as the UI uses it. Don't normalise until you have a reason to.
 - Billing state only ever changes via Stripe webhooks using the service-role client. Users can't write their own `subscription_status` — there's deliberately no RLS policy for it.
-- If `STRIPE_SECRET_KEY`/`STRIPE_PRICE_ID` are unset, `lib/billing.js` treats everyone as subscribed. Handy for dev, and means you can soft-launch free.
+- If `STRIPE_SECRET_KEY`/`STRIPE_PRICE_ID` are unset, local development remains accessible. Production fails closed so a configuration mistake cannot silently remove the paywall.
 
 ## SEO & guides
 
@@ -93,9 +93,8 @@ canonical URLs, `sitemap.xml`, `robots.txt`, an SVG favicon (`app/icon.svg`), an
 JSON-LD structured data (SoftwareApplication + FAQ on the homepage, Article + FAQ on
 each guide).
 
-**IMPORTANT:** `sitemap.xml` and `robots.txt` bake in `NEXT_PUBLIC_SITE_URL` at build
-time. Make sure that env var is set to your real domain in Vercel, or they'll point at
-the wrong URL. (Verified: with the correct env var they output the right domain.)
+**IMPORTANT:** Set `NEXT_PUBLIC_SITE_URL` to the real domain in Vercel. The sitemap is
+revalidated hourly so newly published database guides can appear without a redeploy.
 
 **Adding a guide** (your main SEO lever): edit `lib/guides.js` and add an object to the
 `GUIDES` array — slug, title, description, intro, sections, and faqs. The listing page,

@@ -12,22 +12,26 @@ export const metadata = {
 
 export default async function SeoPage() {
   const supabase = await createClient();
+  let context;
   try {
-    const { user, admin } = await requireSeoAdmin(supabase);
-    const { data: opportunities } = await admin
-      .from("seo_opportunities")
-      .select("*")
-      .order("priority", { ascending: false })
-      .order("created_at", { ascending: false });
-
-    const { data: searchConsole } = await admin
-      .from("search_console_connections")
-      .select("selected_property, properties, connected_at, last_imported_at")
-      .eq("owner_email", user.email.toLowerCase())
-      .maybeSingle();
-
-    return <SeoWorkspace initialOpportunities={opportunities || []} searchConsole={searchConsole} />;
+    context = await requireSeoAdmin(supabase);
   } catch {
     redirect("/dashboard");
   }
+  const { user, admin } = context;
+  const { data: opportunities, error: opportunitiesError } = await admin
+    .from("seo_opportunities")
+    .select("*")
+    .order("priority", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (opportunitiesError) throw new Error(`Could not load SEO opportunities: ${opportunitiesError.message}`);
+
+  const { data: searchConsole, error: searchConsoleError } = await admin
+    .from("search_console_connections")
+    .select("selected_property, properties, connected_at, last_imported_at")
+    .eq("owner_email", user.email.toLowerCase())
+    .maybeSingle();
+  if (searchConsoleError) throw new Error(`Could not load Search Console connection: ${searchConsoleError.message}`);
+
+  return <SeoWorkspace initialOpportunities={opportunities || []} searchConsole={searchConsole} />;
 }

@@ -30,6 +30,9 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
   const [researching, setResearching] = useState(false);
   const [keywordIdeas, setKeywordIdeas] = useState([]);
   const [researchCost, setResearchCost] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [draftText, setDraftText] = useState("");
+  const [savingDraft, setSavingDraft] = useState(false);
 
   const stats = useMemo(
     () => ({
@@ -142,6 +145,37 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
     }
   }
 
+  function editDraft(item) {
+    setEditingId(item.id);
+    setDraftText(JSON.stringify(item.draft, null, 2));
+    setMessage("");
+  }
+
+  async function saveDraft(item) {
+    setSavingDraft(true);
+    setMessage("");
+    try {
+      const draft = JSON.parse(draftText);
+      const response = await fetch("/api/seo/opportunities", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: item.id, draft }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Could not save draft");
+      setOpportunities((current) =>
+        current.map((entry) => (entry.id === item.id ? payload.opportunity : entry))
+      );
+      setEditingId(null);
+      setDraftText("");
+      setMessage("Draft edits saved. Nothing public changed until you press Publish.");
+    } catch (error) {
+      setMessage(error instanceof SyntaxError ? "Draft JSON is not valid yet." : error.message);
+    } finally {
+      setSavingDraft(false);
+    }
+  }
+
   async function addOpportunity(event) {
     event.preventDefault();
     setSaving(true);
@@ -242,7 +276,7 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
             <label>Format<select value={form.pageType} onChange={(e) => setForm({ ...form, pageType: e.target.value })}><option value="guide">Guide</option><option value="checklist">Checklist</option><option value="tool">Free tool</option><option value="landing-page">Landing page</option><option value="update">Improve existing page</option></select></label>
             <label>Priority<input min="1" max="100" type="number" value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })} /></label>
           </div>
-          <label>Existing page or competitor URL <span className="muted">(optional)</span><input value={form.sourceUrl} onChange={(e) => setForm({ ...form, sourceUrl: e.target.value })} placeholder="https://" /></label>
+          <label>Existing page or competitor URL <span className="muted">(optional — visible page text is analysed for gaps)</span><input value={form.sourceUrl} onChange={(e) => setForm({ ...form, sourceUrl: e.target.value })} placeholder="https://" /></label>
           <label>What should the draft cover? <span className="muted">(optional)</span><textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Include a moving-in checklist, renewal dates and links to relevant RentClock features." /></label>
           <button className="btn primary" disabled={saving}>{saving ? "Adding…" : "Add to content queue"}</button>
           {message && <p className="seo-message">{message}</p>}
@@ -254,9 +288,9 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
             <li><b>Search Console import</b><span>Prioritise queries already close to page one.</span></li>
             <li><b>AI content drafts</b><span>Produce titles, outlines, FAQs, internal links and source checks.</span></li>
             <li><b>Review then publish</b><span>Keep legal claims and facts under human control before they go live.</span></li>
-            <li><b>Measure the win</b><span>Track impressions, clicks, rankings and sign-ups by page.</span></li>
+            <li><b>Measure the win</b><span>Track impressions, clicks and rankings by page in Search Console.</span></li>
           </ol>
-          <div className="seo-notice"><b>AI drafting is enabled.</b><br />Each draft sends only that opportunity’s title, keyword, URL and editorial notes to OpenAI. It never reads customer property or certificate data.</div>
+          <div className="seo-notice"><b>AI drafting is enabled.</b><br />Each draft sends only that opportunity’s brief and, if supplied, visible public reference-page text to OpenAI. It never reads customer property or certificate data.</div>
         </aside>
       </section>
 
@@ -280,6 +314,11 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
                   <button className="btn ghost sm" disabled={draftingId === item.id} onClick={() => generateDraft(item)}>
                     {draftingId === item.id ? "Drafting…" : item.draft ? "Redraft with AI" : "Create AI draft"}
                   </button>
+                  {item.draft && (
+                    <button className="btn ghost sm" onClick={() => editDraft(item)}>
+                      Edit draft
+                    </button>
+                  )}
                   {item.draft && (item.status !== "published" || hasUnpublishedChanges(item)) && (
                     <button className="btn brass sm" disabled={publishingId === item.id} onClick={() => publishGuide(item)}>
                       {publishingId === item.id
@@ -302,6 +341,20 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
                 </div>
                 {item.draft && (
                   <div className="seo-draft-preview">
+                    {editingId === item.id && (
+                      <div className="seo-draft-editor">
+                        <label>
+                          <span className="lbl">Draft JSON</span>
+                          <textarea value={draftText} onChange={(event) => setDraftText(event.target.value)} />
+                        </label>
+                        <div className="form-actions">
+                          <button className="btn primary sm" disabled={savingDraft} onClick={() => saveDraft(item)}>
+                            {savingDraft ? "Saving…" : "Save draft edits"}
+                          </button>
+                          <button className="btn ghost sm" onClick={() => setEditingId(null)}>Cancel</button>
+                        </div>
+                      </div>
+                    )}
                     <b>{item.draft.title}</b>
                     <p>{item.draft.metaDescription}</p>
                     <span>{item.draft.sections?.length || 0} sections · {item.draft.faqs?.length || 0} FAQs · verify listed sources before publishing</span>

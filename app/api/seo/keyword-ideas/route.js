@@ -15,7 +15,7 @@ const SEED_KEYWORDS = [
   "landlord responsibilities",
 ];
 
-const RELEVANT_PATTERNS = [
+const STRONG_RELEVANT_PATTERNS = [
   /\blandlord\b/i,
   /\blandlord registration\b/i,
   /\btenancy deposit\b/i,
@@ -26,21 +26,33 @@ const RELEVANT_PATTERNS = [
   /\belectrical safety\b/i,
   /\bepc\b/i,
   /\bright to rent\b/i,
-  /\bshare code\b/i,
   /\bhmo\b/i,
   /\bhouse in multiple occupation\b/i,
   /\brenters'? rights\b/i,
   /\bsection 21\b/i,
   /\bproperty licensing\b/i,
   /\bselective licensing\b/i,
-  /\bfire safety\b/i,
+];
+
+const CONTEXTUAL_PATTERNS = [/\bfire safety\b/i, /\bshare code\b/i, /\bdeposit\b/i, /\balarm(s)?\b/i];
+const RENTAL_CONTEXT = /\b(landlord|tenant|tenancy|rental|rented|letting|property|hmo|right to rent)\b/i;
+const EXCLUDED_PATTERNS = [
+  /\bparentpay\b/i,
+  /\bcar rental\b/i,
+  /\brent a car\b/i,
+  /\bcommercial property\b/i,
+  /\bmortgage\b/i,
+  /\bcouncil tax\b/i,
+  /\buniversal credit\b/i,
 ];
 
 function isRelevantGuideIdea(item) {
   const keyword = String(item.keyword || "").trim();
   const intent = String(item.search_intent_info?.main_intent || "").toLowerCase();
   if (!keyword || intent === "navigational") return false;
-  return RELEVANT_PATTERNS.some((pattern) => pattern.test(keyword));
+  if (EXCLUDED_PATTERNS.some((pattern) => pattern.test(keyword))) return false;
+  if (STRONG_RELEVANT_PATTERNS.some((pattern) => pattern.test(keyword))) return true;
+  return RENTAL_CONTEXT.test(keyword) && CONTEXTUAL_PATTERNS.some((pattern) => pattern.test(keyword));
 }
 
 function suggestedTitle(keyword) {
@@ -82,7 +94,10 @@ export async function POST() {
         language_name: "English",
         filters: [["keyword_info.search_volume", ">", 20]],
         order_by: ["keyword_info.search_volume,desc"],
-        limit: 30,
+        // Fetch a wider candidate set before applying RentClock's strict
+        // relevance filter. Filtering only the top 30 let unrelated high-
+        // volume consumer queries crowd out useful landlord topics.
+        limit: 100,
       }]),
       cache: "no-store",
     });
