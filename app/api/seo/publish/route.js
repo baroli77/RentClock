@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { requireSeoAdmin } from "@/lib/seo";
+import { requireSeoAdmin, seoErrorStatus } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +62,6 @@ export async function POST(request) {
 
     return NextResponse.json({ opportunity: saved, url: `/guides/${slug}` });
   } catch (error) {
-    return NextResponse.json({ error: error.message || "Unable to publish guide." }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Unable to publish guide." }, { status: seoErrorStatus(error, 500) });
   }
 }

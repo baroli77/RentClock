@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { cleanDraft, requireSeoAdmin } from "@/lib/seo";
+import { cleanDraft, requireSeoAdmin, seoErrorStatus } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -89,7 +89,7 @@ Return only valid JSON:
   } catch (error) {
     return NextResponse.json(
       { error: error.message || "Unable to generate draft." },
-      { status: 500 }
+      { status: seoErrorStatus(error, 500) }
     );
   }
 }
