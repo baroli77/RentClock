@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import BrandLogo from "@/components/BrandLogo";
 import { useRouter } from "next/navigation";
@@ -147,6 +147,9 @@ function AddPropertyForm({ onAdd, onCancel }) {
       anchors: {},
       docs: [],
       epcBand: "",
+      agreementType: "written",
+      applicability: { gas: true, deposit: true, epcExempt: false, howtorent: false },
+      rightToRent: { occupierName: "", method: "", checkedOn: "", notes: "" },
     });
   };
 
@@ -186,7 +189,7 @@ function NewTenancyForm({ onConfirm, onCancel }) {
         <button className="btn ghost sm" onClick={onCancel}>Cancel</button>
       </div>
       <div className="nt-note">
-        Resets deposit protection, Right to Rent, ‘How to Rent’, alarm and written-statement tasks for the new tenants.
+        Resets deposit protection, Right to Rent, alarm and written-statement tasks for the new tenants.
       </div>
     </div>
   );
@@ -231,15 +234,26 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
     for (const item of ONEOFFS) {
       if (item.perTenancy) checks[item.key] = false;
     }
-    onUpdate({ ...prop, tenancyStart: startISO, checks });
+    const dates = { ...(prop.dates || {}) };
+    delete dates.depositReceived;
+    delete dates.rtrFollowUpDue;
+    onUpdate({
+      ...prop,
+      tenancyStart: startISO,
+      checks,
+      dates,
+      rightToRent: { occupierName: "", method: "", checkedOn: "", notes: "" },
+      applicability: { ...(prop.applicability || {}), howtorent: false },
+    });
     setNewTenancy(false);
   };
 
   const statuses = RECURRING.map((item) => ({ item, st: recurringStatus(prop, item) }));
-  const bandBad = prop.epcBand === "F" || prop.epcBand === "G";
+  const bandBad =
+    prop.applicability?.epcExempt !== true && (prop.epcBand === "F" || prop.epcBand === "G");
   const overdueCount =
     statuses.filter((s) => s.st.code === "overdue").length +
-    ONEOFFS.filter((i) => oneoffStatus(i, prop.checks?.[i.key], prop.tenancyStart).code === "overdue").length +
+    ONEOFFS.filter((i) => oneoffStatus(i, prop.checks?.[i.key], prop).code === "overdue").length +
     (bandBad ? 1 : 0);
 
   return (
@@ -271,6 +285,44 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
               </button>
             )}
           </div>
+          <div className="applicability-grid">
+            <label>
+              <span className="lbl">Tenancy agreement</span>
+              <select
+                value={prop.agreementType || "written"}
+                onChange={(e) => onUpdate({ ...prop, agreementType: e.target.value })}
+              >
+                <option value="written">Written agreement</option>
+                <option value="verbal">Verbal agreement</option>
+              </select>
+            </label>
+            <label className="check-wrap compact-check">
+              <input
+                type="checkbox"
+                checked={prop.applicability?.deposit !== false}
+                onChange={(e) =>
+                  onUpdate({
+                    ...prop,
+                    applicability: { ...(prop.applicability || {}), deposit: e.target.checked },
+                  })
+                }
+              />
+              <span>Deposit taken</span>
+            </label>
+            <label className="check-wrap compact-check">
+              <input
+                type="checkbox"
+                checked={prop.applicability?.howtorent === true}
+                onChange={(e) =>
+                  onUpdate({
+                    ...prop,
+                    applicability: { ...(prop.applicability || {}), howtorent: e.target.checked },
+                  })
+                }
+              />
+              <span>Track historic How to Rent evidence</span>
+            </label>
+          </div>
           {newTenancy && (
             <NewTenancyForm onConfirm={startNewTenancy} onCancel={() => setNewTenancy(false)} />
           )}
@@ -288,6 +340,21 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
                   {item.key === "gas" && st.anchored && (
                     <div className="row-note anchored">Original expiry preserved — renewed within the final 2 months.</div>
                   )}
+                  {item.key === "gas" && (
+                    <label className="check-wrap compact-check row-option">
+                      <input
+                        type="checkbox"
+                        checked={prop.applicability?.gas === false}
+                        onChange={(e) =>
+                          onUpdate({
+                            ...prop,
+                            applicability: { ...(prop.applicability || {}), gas: !e.target.checked },
+                          })
+                        }
+                      />
+                      <span>No gas appliances at this property</span>
+                    </label>
+                  )}
                   {item.hasBand && (
                     <div className="band-row">
                       <span className="lbl inline">Band</span>
@@ -303,6 +370,24 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
                       {bandBad && <span className="band-warn">Below band E — cannot legally be let</span>}
                     </div>
                   )}
+                  {item.key === "epc" && (
+                    <label className="check-wrap compact-check row-option">
+                      <input
+                        type="checkbox"
+                        checked={prop.applicability?.epcExempt === true}
+                        onChange={(e) =>
+                          onUpdate({
+                            ...prop,
+                            applicability: {
+                              ...(prop.applicability || {}),
+                              epcExempt: e.target.checked,
+                            },
+                          })
+                        }
+                      />
+                      <span>Registered EPC / minimum-standard exemption applies</span>
+                    </label>
+                  )}
                   <FixLink item={item} code={st.code} />
                   <DocList prop={prop} itemKey={item.key} onUpdate={onUpdate} />
                 </div>
@@ -312,6 +397,7 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
                     type="date"
                     value={prop.dates?.[item.key] || ""}
                     onChange={(e) => setDate(item.key, e.target.value)}
+                    disabled={st.code === "na"}
                   />
                   {item.key === "eicr" && (
                     <label className="date-override">
@@ -340,7 +426,7 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
           <div className="ledger">
             {ONEOFFS.map((item) => {
               const done = !!prop.checks?.[item.key];
-              const st = oneoffStatus(item, done, prop.tenancyStart);
+              const st = oneoffStatus(item, done, prop);
               return (
                 <div className="row oneoff" key={item.key}>
                   <div className="row-main">
@@ -355,7 +441,87 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
                         <div className="row-label">{item.label}</div>
                         <div className="row-note">{item.note}</div>
                         {st.code === "na" && (
-                          <div className="row-note">Tenancy started on or after 1 May 2026 — the written statement applies instead.</div>
+                          <div className="row-note">This task is not applicable with the property details currently selected.</div>
+                        )}
+                        {item.key === "deposit" && prop.applicability?.deposit !== false && (
+                          <label className="inline-detail">
+                            <span className="lbl">Deposit received</span>
+                            <input
+                              type="date"
+                              value={prop.dates?.depositReceived || ""}
+                              onChange={(e) => setDate("depositReceived", e.target.value)}
+                            />
+                          </label>
+                        )}
+                        {item.key === "rtr" && (
+                          <div className="rtr-record">
+                            <label>
+                              <span className="lbl">Adult occupier</span>
+                              <input
+                                value={prop.rightToRent?.occupierName || ""}
+                                onChange={(e) =>
+                                  onUpdate({
+                                    ...prop,
+                                    rightToRent: { ...(prop.rightToRent || {}), occupierName: e.target.value },
+                                  })
+                                }
+                                placeholder="Name"
+                              />
+                            </label>
+                            <label>
+                              <span className="lbl">Check method</span>
+                              <select
+                                value={prop.rightToRent?.method || ""}
+                                onChange={(e) =>
+                                  onUpdate({
+                                    ...prop,
+                                    rightToRent: { ...(prop.rightToRent || {}), method: e.target.value },
+                                  })
+                                }
+                              >
+                                <option value="">Select…</option>
+                                <option value="online">Home Office online service</option>
+                                <option value="documents">Original documents</option>
+                                <option value="landlord-checking-service">Landlord Checking Service</option>
+                              </select>
+                            </label>
+                            <label>
+                              <span className="lbl">Check carried out</span>
+                              <input
+                                type="date"
+                                value={prop.rightToRent?.checkedOn || ""}
+                                onChange={(e) =>
+                                  onUpdate({
+                                    ...prop,
+                                    rightToRent: { ...(prop.rightToRent || {}), checkedOn: e.target.value },
+                                  })
+                                }
+                              />
+                            </label>
+                            <label className="rtr-notes">
+                              <span className="lbl">Notes</span>
+                              <input
+                                value={prop.rightToRent?.notes || ""}
+                                onChange={(e) =>
+                                  onUpdate({
+                                    ...prop,
+                                    rightToRent: { ...(prop.rightToRent || {}), notes: e.target.value },
+                                  })
+                                }
+                                placeholder="Evidence retained, reference, or follow-up detail"
+                              />
+                            </label>
+                          </div>
+                        )}
+                        {item.userDateField && (
+                          <label className="inline-detail">
+                            <span className="lbl">Follow-up due (if required)</span>
+                            <input
+                              type="date"
+                              value={prop.dates?.[item.userDateField] || ""}
+                              onChange={(e) => setDate(item.userDateField, e.target.value)}
+                            />
+                          </label>
                         )}
                       </div>
                     </label>
@@ -400,60 +566,139 @@ export default function RentClockDashboard({ initialProperties, email, access, b
   const [upgradeState, setUpgradeState] = useState("idle");
   const [upgradeMessage, setUpgradeMessage] = useState("");
   const timerRef = useRef(null);
+  const retryTimerRef = useRef(null);
+  const retryCountRef = useRef(0);
+  const pendingRef = useRef(new Map());
+  const deleteRef = useRef(new Set());
+  const inFlightRef = useRef(null);
   const latestRef = useRef(props);
   const viewRef = useRef(view);
   viewRef.current = view;
 
-  const sync = useCallback(async () => {
-    setSaveState("saving");
-    try {
-      const res = await fetch("/api/data", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ properties: latestRef.current }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Save failed");
-      // Adopt canonical ids for newly created rows. If the selected property
-      // had a temporary id, re-select it by name (server assigns real uuids).
-      const selected = latestRef.current.find((p) => p.id === viewRef.current);
-      latestRef.current = json.properties;
-      setProps(json.properties);
-      if (selected && !json.properties.some((p) => p.id === viewRef.current)) {
-        const match =
-          json.properties.find((p) => p.name === selected.name && p.address === selected.address) ||
-          json.properties[json.properties.length - 1];
-        setView(match ? match.id : "overview");
+  const drainSaves = useCallback(async () => {
+    if (inFlightRef.current) return inFlightRef.current;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+
+    const run = async () => {
+      setSaveState("saving");
+      try {
+        while (deleteRef.current.size || pendingRef.current.size) {
+          const deletes = [...deleteRef.current];
+          deleteRef.current.clear();
+          for (const id of deletes) {
+            const res = await fetch("/api/data", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id }),
+            });
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok) {
+              deleteRef.current.add(id);
+              throw new Error(json.error || "Delete failed");
+            }
+          }
+
+          const saves = [...pendingRef.current.values()];
+          pendingRef.current.clear();
+          for (const submitted of saves) {
+            if (deleteRef.current.has(submitted.id)) continue;
+            const res = await fetch("/api/data", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ property: submitted }),
+            });
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok || !json.property) {
+              pendingRef.current.set(submitted.id, pendingRef.current.get(submitted.id) || submitted);
+              throw new Error(json.error || "Save failed");
+            }
+
+            if (String(submitted.id).startsWith("tmp-") && json.property.id) {
+              const serverId = json.property.id;
+              const newest = pendingRef.current.get(submitted.id);
+              if (newest) {
+                pendingRef.current.delete(submitted.id);
+                pendingRef.current.set(serverId, { ...newest, id: serverId });
+              }
+              const next = latestRef.current.map((item) =>
+                item.id === submitted.id ? { ...item, id: serverId } : item
+              );
+              latestRef.current = next;
+              setProps(next);
+              if (viewRef.current === submitted.id) setView(serverId);
+            }
+          }
+        }
+        retryCountRef.current = 0;
+        setSaveState("saved");
+        return true;
+      } catch (error) {
+        console.error(error);
+        setSaveState("error");
+        retryCountRef.current += 1;
+        const wait = Math.min(30000, 1000 * 2 ** Math.min(retryCountRef.current, 5));
+        retryTimerRef.current = setTimeout(() => drainSaves(), wait);
+        return false;
+      } finally {
+        inFlightRef.current = null;
       }
-      setSaveState("saved");
-    } catch (e) {
-      console.error(e);
-      setSaveState("error");
-    }
+    };
+
+    inFlightRef.current = run();
+    return inFlightRef.current;
   }, []);
 
-  const commit = useCallback(
-    (next) => {
-      setProps(next);
-      latestRef.current = next;
+  const scheduleSave = useCallback(
+    (property) => {
+      pendingRef.current.set(property.id, property);
       setSaveState("saving");
       if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(sync, 600);
+      timerRef.current = setTimeout(() => drainSaves(), 600);
     },
-    [sync]
+    [drainSaves]
   );
 
+  const commitProperty = useCallback(
+    (next, property) => {
+      setProps(next);
+      latestRef.current = next;
+      scheduleSave(property);
+    },
+    [scheduleSave]
+  );
+
+  useEffect(() => {
+    const warnBeforeLeaving = (event) => {
+      if (saveState === "saved" && !pendingRef.current.size && !inFlightRef.current) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warnBeforeLeaving);
+    return () => {
+      window.removeEventListener("beforeunload", warnBeforeLeaving);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+    };
+  }, [saveState]);
+
   const addProperty = (p) => {
-    commit([...latestRef.current, p]);
+    commitProperty([...latestRef.current, p], p);
     setView(p.id);
   };
   const updateProperty = (p) => {
-    commit(latestRef.current.map((x) => (x.id === p.id ? p : x)));
+    commitProperty(latestRef.current.map((x) => (x.id === p.id ? p : x)), p);
   };
   const removeProperty = async (id) => {
     if (!window.confirm("Remove this property and its records?")) return;
     const gone = latestRef.current.find((x) => x.id === id);
-    commit(latestRef.current.filter((x) => x.id !== id));
+    pendingRef.current.delete(id);
+    if (/^[0-9a-f-]{36}$/i.test(id)) deleteRef.current.add(id);
+    const next = latestRef.current.filter((x) => x.id !== id);
+    latestRef.current = next;
+    setProps(next);
+    setSaveState("saving");
+    drainSaves();
     setView("overview");
     // Clean up attached documents from storage (best effort, after the UI moves on)
     for (const d of gone?.docs || []) {
@@ -470,7 +715,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
 
   const propAlerts = (p) => {
     const rec = RECURRING.map((item) => recurringStatus(p, item));
-    const one = ONEOFFS.map((item) => oneoffStatus(item, p.checks?.[item.key], p.tenancyStart));
+    const one = ONEOFFS.map((item) => oneoffStatus(item, p.checks?.[item.key], p));
     const all = [...rec, ...one];
     let overdue = all.filter((st) => st.code === "overdue").length;
     const soon = all.filter((st) => st.code === "soon").length;
@@ -479,6 +724,10 @@ export default function RentClockDashboard({ initialProperties, email, access, b
   };
 
   const signOut = async () => {
+    if (!(await drainSaves())) {
+      setCheckoutError("Your latest changes could not be saved. Retry the save before signing out.");
+      return;
+    }
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/");
@@ -488,6 +737,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
   const openBillingPortal = async () => {
     setCheckoutError("");
     try {
+      if (!(await drainSaves())) throw new Error("Save your latest changes before leaving RentClock.");
       const res = await fetch("/api/portal", { method: "POST" });
       const json = await res.json();
       if (!res.ok || !json.url) throw new Error(json.error || "Could not open billing");
@@ -500,7 +750,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
   const upgradeToAnnual = async () => {
     if (
       !window.confirm(
-        "Switch to annual billing now? Stripe will credit any unused monthly time and charge £59.90 today."
+        "Switch to annual billing? During a trial you stay free until the trial ends. Otherwise Stripe applies credit for unused monthly time and charges the prorated annual amount now."
       )
     ) {
       return;
@@ -509,6 +759,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
     setUpgradeState("loading");
     setUpgradeMessage("");
     try {
+      if (!(await drainSaves())) throw new Error("Save your latest changes before changing plan.");
       const res = await fetch("/api/subscription/annual", { method: "POST" });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Could not switch to annual billing");
@@ -516,6 +767,8 @@ export default function RentClockDashboard({ initialProperties, email, access, b
       setUpgradeMessage(
         json.alreadyAnnual
           ? "Your subscription is already on the annual plan."
+          : json.effective === "trial_end"
+          ? "Annual billing is selected and will start when your free trial ends."
           : "You are now on annual billing."
       );
       router.refresh();
@@ -529,6 +782,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
     setCheckoutState(plan);
     setCheckoutError("");
     try {
+      if (!(await drainSaves())) throw new Error("Save your latest changes before opening checkout.");
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -551,7 +805,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
       entries.push({ prop: p, label: item.label, st });
     }
     for (const item of ONEOFFS) {
-      const st = oneoffStatus(item, p.checks?.[item.key], p.tenancyStart);
+      const st = oneoffStatus(item, p.checks?.[item.key], p);
       if (st.due && !["ok", "na"].includes(st.code)) entries.push({ prop: p, label: item.label, st });
     }
   }
@@ -573,13 +827,16 @@ export default function RentClockDashboard({ initialProperties, email, access, b
         </div>
         <div className="mast-right">
           {saveState !== "saved" && (
-            <span
+            <button
+              type="button"
               className={`save-dot ${saveState}`}
-              title={saveState === "saving" ? "Saving…" : "Save failed — retrying on next change"}
+              title={saveState === "saving" ? "Saving…" : "Save failed — click to retry now"}
+              onClick={() => saveState === "error" && drainSaves()}
+              disabled={saveState === "saving"}
             >
               <span className="dot" />
-              {saveState === "saving" ? "Saving" : "Save failed"}
-            </span>
+              {saveState === "saving" ? "Saving" : "Save failed — retry"}
+            </button>
           )}
           {billingOn && (
             <button className="navbtn" onClick={openBillingPortal}>
