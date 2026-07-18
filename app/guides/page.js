@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { GUIDES } from "@/lib/guides";
+import { getPublishedGuides } from "@/lib/published-guides";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Landlord Compliance Guides",
@@ -8,14 +11,23 @@ export const metadata = {
   alternates: { canonical: "/guides" },
 };
 
-export default function GuidesIndex() {
+export default async function GuidesIndex() {
+  const published = await getPublishedGuides();
+  const guides = [
+    ...GUIDES,
+    ...published.map((guide) => ({
+      slug: guide.slug,
+      title: guide.title,
+      description: guide.description,
+      readMins: guide.readMins,
+    })),
+  ];
+
   return (
     <div className="app">
       <header className="masthead">
         <div className="brand">
-          <Link href="/" className="brand-link">
-            <svg className="brand-mark" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> RentClock
-          </Link>
+          <Link href="/" className="brand-link">⌑ <b>RentClock</b></Link>
         </div>
         <nav className="nav">
           <Link href="/pricing">Pricing</Link>
@@ -33,11 +45,11 @@ export default function GuidesIndex() {
       </section>
 
       <div className="guide-list">
-        {GUIDES.map((g) => (
-          <Link key={g.slug} href={`/guides/${g.slug}`} className="card guide-card">
-            <h2>{g.title}</h2>
-            <p>{g.description}</p>
-            <span className="guide-meta mono">{g.readMins} min read →</span>
+        {guides.map((guide) => (
+          <Link key={guide.slug} href={`/guides/${guide.slug}`} className="card guide-card">
+            <h2>{guide.title}</h2>
+            <p>{guide.description}</p>
+            <span className="guide-meta mono">{guide.readMins} min read →</span>
           </Link>
         ))}
       </div>
@@ -54,9 +66,7 @@ export default function GuidesIndex() {
       <footer className="foot">
         <p>RentClock is a deadline ledger, not legal advice. Made in the UK.</p>
         <nav className="foot-links" aria-label="Legal">
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/terms">Terms</Link>
-          <Link href="/contact">Contact</Link>
+          <Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/contact">Contact</Link>
         </nav>
       </footer>
     </div>
