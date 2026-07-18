@@ -53,10 +53,11 @@ export async function POST() {
   }
 
   try {
+    const duringTrial = subscription.status === "trialing";
     await stripe.subscriptions.update(subscription.id, {
       items: [{ id: subscriptionItem.id, price: process.env.STRIPE_PRICE_ID_ANNUAL }],
-      proration_behavior: "always_invoice",
-      payment_behavior: "error_if_incomplete",
+      proration_behavior: duringTrial ? "none" : "always_invoice",
+      payment_behavior: duringTrial ? "allow_incomplete" : "error_if_incomplete",
     });
   } catch (error) {
     console.error("Annual plan change failed:", error);
@@ -66,5 +67,9 @@ export async function POST() {
     );
   }
 
-  return NextResponse.json({ ok: true, alreadyAnnual: false });
+  return NextResponse.json({
+    ok: true,
+    alreadyAnnual: false,
+    effective: subscription.status === "trialing" ? "trial_end" : "now",
+  });
 }
