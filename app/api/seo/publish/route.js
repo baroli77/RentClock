@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireSeoAdmin, seoErrorStatus } from "@/lib/seo";
+import { GUIDES } from "@/lib/guides";
 
 export const dynamic = "force-dynamic";
 
@@ -30,10 +31,15 @@ export async function POST(request) {
       return NextResponse.json({ error: "This draft needs a clean guide URL before it can be published." }, { status: 400 });
     }
 
-    const { data: published } = await admin
+    if (GUIDES.some((guide) => normaliseSlug(guide.slug) === slug)) {
+      return NextResponse.json({ error: `/guides/${slug} is already used by a built-in guide.` }, { status: 409 });
+    }
+
+    const { data: published, error: publishedError } = await admin
       .from("seo_opportunities")
       .select("id, draft, published_draft")
       .eq("status", "published");
+    if (publishedError) throw new Error(publishedError.message);
     const collision = (published || []).find(
       (item) =>
         item.id !== opportunity.id &&
