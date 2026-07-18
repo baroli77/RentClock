@@ -26,7 +26,12 @@ export async function POST(request) {
 
   const admin = createAdminClient();
 
+  function stripeId(value) {
+    return typeof value === "string" ? value : value?.id;
+  }
+
   async function setStatusByCustomer(customerId, status, userId = null) {
+    customerId = stripeId(customerId);
     if (!customerId) throw new Error("Stripe event has no customer");
     let { data, error } = await admin
       .from("profiles")
@@ -85,19 +90,21 @@ export async function POST(request) {
             site: process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com",
           });
           const resend = new Resend(process.env.RESEND_API_KEY);
-          const { error: emailError } = await resend.emails.send({
-            from,
-            to: owner,
-            subject: `New RentClock member — ${claimed.email || "email unavailable"}`,
-            html,
-            text,
-          });
-          if (emailError) {
+          try {
+            const { error: emailError } = await resend.emails.send({
+              from,
+              to: owner,
+              subject: `New RentClock member — ${claimed.email || "email unavailable"}`,
+              html,
+              text,
+            });
+            if (emailError) throw new Error(emailError.message);
+          } catch (emailError) {
             await admin
               .from("profiles")
               .update({ owner_notification_sent_at: null })
               .eq("id", claimed.id);
-            throw new Error(emailError.message);
+            throw emailError;
           }
         }
       }
@@ -116,7 +123,7 @@ export async function POST(request) {
     case "invoice.paid": {
       const invoice = event.data.object;
       if (invoice.subscription) {
-        const sub = await stripe.subscriptions.retrieve(invoice.subscription);
+        const sub = await stripe.subscriptions.retrieve(stripeId(invoice.subscription));
         await setStatusByCustomer(invoice.customer, sub.status, sub.metadata?.supabase_user_id);
       }
       break;
