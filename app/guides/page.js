@@ -9,6 +9,19 @@ export const metadata = {
   description:
     "Plain-English guides to landlord compliance in England: gas safety, EICR, EPC, deposit rules and the Renters' Rights Act.",
   alternates: { canonical: "/guides" },
+  openGraph: {
+    type: "website",
+    url: "/guides",
+    title: "Landlord Compliance Guides | RentClock",
+    description:
+      "Plain-English landlord compliance guides for England, covering safety certificates, deposits, EPCs and the Renters' Rights Act.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Landlord Compliance Guides | RentClock",
+    description:
+      "Plain-English landlord compliance guides for England.",
+  },
 };
 
 export default async function GuidesIndex() {
