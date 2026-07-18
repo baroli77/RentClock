@@ -60,8 +60,10 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
       const response = await fetch("/api/seo/search-console/import", { method: "POST" });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Could not import Google data");
+      const queueResponse = await fetch("/api/seo/opportunities");
+      const queuePayload = await queueResponse.json();
+      if (queueResponse.ok) setOpportunities(queuePayload.opportunities || []);
       setMessage(`Imported ${payload.imported} new opportunities from ${payload.scanned} useful Google queries.`);
-      window.location.reload();
     } catch (error) {
       setMessage(error.message);
     } finally {
