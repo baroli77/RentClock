@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { requireSeoAdmin } from "@/lib/seo";
+import { requireSeoAdmin, seoErrorStatus } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -113,7 +113,7 @@ export async function POST() {
   } catch (error) {
     return NextResponse.json(
       { error: error.message || "Could not research keyword ideas." },
-      { status: 500 }
+      { status: seoErrorStatus(error, 500) }
     );
   }
 }
