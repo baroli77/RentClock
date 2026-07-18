@@ -51,8 +51,6 @@ create table if not exists public.reminders_sent (
   unique (user_id, property_id, item_key, threshold, due_date)
 );
 alter table public.reminders_sent enable row level security;
-create policy "service role writes reminders" on public.reminders_sent for all to service_role
-  using (true) with check (true);
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('certs', 'certs', false, 5242880, array['application/pdf','image/jpeg','image/png','image/webp'])
@@ -65,4 +63,3 @@ create policy "certs insert own" on storage.objects for insert to authenticated
   with check (bucket_id = 'certs' and (storage.foldername(name))[1] = (select auth.uid())::text);
 create policy "certs delete own" on storage.objects for delete to authenticated
   using (bucket_id = 'certs' and (storage.foldername(name))[1] = (select auth.uid())::text);
-
