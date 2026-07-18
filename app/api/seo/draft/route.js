@@ -36,7 +36,7 @@ export async function POST(request) {
 
     // The only data sent to OpenAI is the selected SEO content brief below.
     // No RentClock customer, property, certificate or reminder data is read.
-    const prompt = `Create a high-quality UK landlord SEO content brief for RentClock, a SaaS that helps small landlords track compliance deadlines. Do not give personalised legal advice and do not invent laws, dates, penalties or sources. Be genuinely useful and avoid keyword stuffing.
+    const prompt = `Create a high-quality UK landlord SEO content brief for RentClock, a SaaS that helps small landlords track compliance deadlines. Do not give personalised legal advice and do not invent laws, dates, penalties or sources. Be genuinely useful and avoid keyword stuffing. Write a publishable guide, not merely an outline: each section must contain two or three concise paragraphs of accurate, plain-English content. Flag facts that need verification rather than making them up.
 
 Opportunity:
 Title: ${opportunity.title}
@@ -52,7 +52,7 @@ Return only valid JSON:
   "metaDescription": "Meta description under 155 characters",
   "slug": "guides/example-slug",
   "intro": "Two useful introductory sentences",
-  "sections": [{"heading":"...","points":["..."]}],
+  "sections": [{"heading":"...","paragraphs":["paragraph one","paragraph two"]}],
   "faqs": [{"question":"...","answer":"..."}],
   "internalLinks": [{"anchor":"...","target":"/guides/..."}],
   "sourcesToVerify": ["Specific official source or legislation to fact-check before publication"]
