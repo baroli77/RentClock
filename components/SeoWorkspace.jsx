@@ -17,6 +17,7 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
   const [form, setForm] = useState(blank);
   const [saving, setSaving] = useState(false);
   const [draftingId, setDraftingId] = useState(null);
+  const [publishingId, setPublishingId] = useState(null);
   const [importing, setImporting] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -28,6 +29,29 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
     }),
     [opportunities]
   );
+
+  async function publishGuide(item) {
+    if (!window.confirm(`Publish "${item.draft.title}" publicly on RentClock now?`)) return;
+    setPublishingId(item.id);
+    setMessage("");
+    try {
+      const response = await fetch("/api/seo/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: item.id }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Could not publish guide");
+      setOpportunities((current) =>
+        current.map((entry) => (entry.id === item.id ? payload.opportunity : entry))
+      );
+      setMessage(`Guide published: ${payload.url}`);
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setPublishingId(null);
+    }
+  }
 
   async function importSearchConsole() {
     setImporting(true);
@@ -176,12 +200,20 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
                   <button className="btn ghost sm" disabled={draftingId === item.id} onClick={() => generateDraft(item.id)}>
                     {draftingId === item.id ? "Drafting…" : item.draft ? "Redraft with AI" : "Create AI draft"}
                   </button>
+                  {item.draft && item.status !== "published" && (
+                    <button className="btn brass sm" disabled={publishingId === item.id} onClick={() => publishGuide(item)}>
+                      {publishingId === item.id ? "Publishing…" : "Publish guide"}
+                    </button>
+                  )}
+                  {item.draft && item.status === "published" && (
+                    <a className="btn ghost sm" href={`/guides/${item.draft.slug}`} target="_blank">View guide</a>
+                  )}
                 </div>
                 {item.draft && (
                   <div className="seo-draft-preview">
                     <b>{item.draft.title}</b>
                     <p>{item.draft.metaDescription}</p>
-                    <span>{item.draft.sections?.length || 0} sections · {item.draft.faqs?.length || 0} FAQs · check sources before publishing</span>
+                    <span>{item.draft.sections?.length || 0} sections · {item.draft.faqs?.length || 0} FAQs · verify listed sources before publishing</span>
                   </div>
                 )}
               </article>
