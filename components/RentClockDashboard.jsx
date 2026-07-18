@@ -96,12 +96,17 @@ function DocList({ prop, itemKey, onUpdate }) {
 
   const remove = async (doc) => {
     setError("");
+    setBusy(true);
     try {
-      await fetch(`/api/docs?path=${encodeURIComponent(doc.path)}`, { method: "DELETE" });
-    } catch {
-      // best effort; still remove from ledger
+      const res = await fetch(`/api/docs?path=${encodeURIComponent(doc.path)}`, { method: "DELETE" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || "Could not delete document");
+      onUpdate({ ...prop, docs: (prop.docs || []).filter((d) => d.id !== doc.id) });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
     }
-    onUpdate({ ...prop, docs: (prop.docs || []).filter((d) => d.id !== doc.id) });
   };
 
   return (
@@ -111,7 +116,7 @@ function DocList({ prop, itemKey, onUpdate }) {
           <button className="doc-name mono" onClick={() => download(d)} title="Download">
             📎 {d.name}
           </button>
-          <button className="doc-x" onClick={() => remove(d)} title="Delete">
+          <button className="doc-x" onClick={() => remove(d)} title="Delete" disabled={busy}>
             ×
           </button>
         </span>
