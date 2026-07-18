@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GUIDES, getGuide } from "@/lib/guides";
-import { getPublishedGuide } from "@/lib/published-guides";
+import { GUIDES } from "@/lib/guides";
+import { getPublishedGuides } from "@/lib/published-guides";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com";
 export const dynamic = "force-dynamic";
@@ -25,8 +25,37 @@ function normaliseGuide(guide) {
   };
 }
 
+async function getGuideCatalog() {
+  const published = await getPublishedGuides();
+  const seen = new Set();
+  return [...GUIDES, ...published]
+    .map(normaliseGuide)
+    .filter((guide) => {
+      if (!guide || seen.has(guide.slug)) return false;
+      seen.add(guide.slug);
+      return true;
+    });
+}
+
 async function findGuide(slug) {
-  return normaliseGuide(getGuide(slug) || (await getPublishedGuide(slug)));
+  const catalog = await getGuideCatalog();
+  return catalog.find((guide) => guide.slug === String(slug || "").toLowerCase()) || null;
+}
+
+function getRelatedGuides(catalog, current) {
+  const words = new Set(
+    (current.title.toLowerCase().match(/[a-z0-9]+/g) || []).filter((word) => word.length > 3)
+  );
+  return catalog
+    .filter((guide) => guide.slug !== current.slug)
+    .map((guide, index) => ({
+      guide,
+      index,
+      score: (guide.title.toLowerCase().match(/[a-z0-9]+/g) || []).filter((word) => words.has(word)).length,
+    }))
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .slice(0, 3)
+    .map(({ guide }) => guide);
 }
 
 export async function generateMetadata({ params }) {
@@ -48,16 +77,18 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function GuidePage({ params }) {
-  const guide = await findGuide(params.slug);
+  const catalog = await getGuideCatalog();
+  const guide = catalog.find((item) => item.slug === String(params.slug || "").toLowerCase());
   if (!guide) notFound();
+  const relatedGuides = getRelatedGuides(catalog, guide);
 
   const articleLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: guide.title,
     description: guide.description,
-    datePublished: guide.updated,
-    dateModified: guide.updated,
+    datePublished: guide.published || guide.updated,
+    dateModified: guide.updated || guide.published,
     image: `${SITE}/opengraph-image`,
     author: { "@type": "Organization", name: "RentClock", url: SITE },
     publisher: { "@type": "Organization", name: "RentClock", url: SITE },
@@ -98,6 +129,19 @@ export default async function GuidePage({ params }) {
           <h2>Frequently asked questions</h2>
           {guide.faqs.map((faq, index) => <div key={index} className="faq-item"><b>{faq.question}</b><p>{faq.answer}</p></div>)}
         </section>}
+
+        {relatedGuides.length > 0 && (
+          <section className="article-section" aria-labelledby="related-guides">
+            <h2 id="related-guides">Related landlord guides</h2>
+            <ul>
+              {relatedGuides.map((related) => (
+                <li key={related.slug}>
+                  <Link href={`/guides/${related.slug}`}>{related.title}</Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <aside className="article-cta card">
           <h3>RentClock tracks all of this for you</h3>

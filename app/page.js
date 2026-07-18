@@ -46,6 +46,7 @@ export default function Landing() {
         <nav className="nav home-v2-nav" aria-label="Main navigation">
           <a href="#why-rentclock">Why RentClock</a>
           <a href="#how-it-works">How it works</a>
+          <Link href="/guides">Guides</Link>
           <Link href="/pricing">Pricing</Link>
           <Link href="/login">Sign in</Link>
           <Link href="/login" className="btn primary sm">Start free trial</Link>
@@ -138,7 +139,7 @@ export default function Landing() {
       <footer className="foot home-v2-foot">
         <p>RentClock is a deadline ledger, not legal advice. Made in the UK.</p>
         <nav className="foot-links" aria-label="Legal">
-          <Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/contact">Contact</Link>
+          <Link href="/guides">Guides</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/contact">Contact</Link>
         </nav>
       </footer>
     </div>

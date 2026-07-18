@@ -51,8 +51,12 @@ export default function Pricing() {
           Start 14-day free trial
         </Link>
         <p className="price-fine">
-          Tax deductible as a letting business expense. Cancel in two clicks — you keep access
-          until your period ends and your ledger is kept if you return.
+          RentClock may be an allowable property-business expense depending on your circumstances.{" "}
+          <a href="https://www.gov.uk/renting-out-a-property/paying-tax" target="_blank" rel="noreferrer">
+            Check HMRC guidance
+          </a>{" "}
+          or ask your adviser. Cancel in two clicks — you keep access until your period ends and
+          your ledger is kept if you return.
         </p>
       </section>
 

@@ -49,10 +49,6 @@ export async function POST(request) {
   }
   const incoming = Array.isArray(body?.properties) ? body.properties : null;
   if (!incoming) return NextResponse.json({ error: "properties array required" }, { status: 400 });
-  if (incoming.length > 100) {
-    return NextResponse.json({ error: "Too many properties" }, { status: 400 });
-  }
-
   const { data: existing, error: exErr } = await supabase.from("properties").select("id");
   if (exErr) return NextResponse.json({ error: exErr.message }, { status: 500 });
 

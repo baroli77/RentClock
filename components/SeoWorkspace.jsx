@@ -12,6 +12,13 @@ const blank = {
   notes: "",
 };
 
+function hasUnpublishedChanges(item) {
+  return (
+    item.status === "published" &&
+    JSON.stringify(item.draft || null) !== JSON.stringify(item.published_draft || null)
+  );
+}
+
 export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
   const [opportunities, setOpportunities] = useState(initialOpportunities);
   const [form, setForm] = useState(blank);
@@ -27,14 +34,18 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
   const stats = useMemo(
     () => ({
       total: opportunities.length,
-      ready: opportunities.filter((item) => item.status === "ready").length,
+      ready: opportunities.filter(
+        (item) => item.status === "ready" || hasUnpublishedChanges(item)
+      ).length,
       high: opportunities.filter((item) => item.priority >= 70).length,
     }),
     [opportunities]
   );
 
   async function publishGuide(item) {
-    if (!window.confirm(`Publish "${item.draft.title}" publicly on RentClock now?`)) return;
+    const isUpdate = item.status === "published";
+    const action = isUpdate ? "Publish this update" : "Publish";
+    if (!window.confirm(`${action} for "${item.draft.title}" publicly on RentClock now?`)) return;
     setPublishingId(item.id);
     setMessage("");
     try {
@@ -48,7 +59,7 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
       setOpportunities((current) =>
         current.map((entry) => (entry.id === item.id ? payload.opportunity : entry))
       );
-      setMessage(`Guide published: ${payload.url}`);
+      setMessage(`${isUpdate ? "Guide update published" : "Guide published"}: ${payload.url}`);
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -104,7 +115,8 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
     document.querySelector(".seo-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  async function generateDraft(id) {
+  async function generateDraft(item) {
+    const id = item.id;
     setDraftingId(id);
     setMessage("");
     try {
@@ -118,7 +130,11 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
       setOpportunities((current) =>
         current.map((item) => (item.id === id ? payload.opportunity : item))
       );
-      setMessage("AI draft created and marked ready for review.");
+      setMessage(
+        item.status === "published"
+          ? "AI draft created. The current public guide is unchanged until you publish the update."
+          : "AI draft created and marked ready for review."
+      );
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -260,16 +276,28 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
                 </div>
                 <div className="seo-item-actions">
                   <div className={"seo-status " + item.status}>{item.status}</div>
-                  <button className="btn ghost sm" disabled={draftingId === item.id} onClick={() => generateDraft(item.id)}>
+                  {hasUnpublishedChanges(item) && <div className="seo-status ready">update ready</div>}
+                  <button className="btn ghost sm" disabled={draftingId === item.id} onClick={() => generateDraft(item)}>
                     {draftingId === item.id ? "Drafting…" : item.draft ? "Redraft with AI" : "Create AI draft"}
                   </button>
-                  {item.draft && item.status !== "published" && (
+                  {item.draft && (item.status !== "published" || hasUnpublishedChanges(item)) && (
                     <button className="btn brass sm" disabled={publishingId === item.id} onClick={() => publishGuide(item)}>
-                      {publishingId === item.id ? "Publishing…" : "Publish guide"}
+                      {publishingId === item.id
+                        ? "Publishing…"
+                        : item.status === "published"
+                          ? "Publish update"
+                          : "Publish guide"}
                     </button>
                   )}
-                  {item.draft && item.status === "published" && (
-                    <a className="btn ghost sm" href={`/guides/${item.draft.slug}`} target="_blank">View guide</a>
+                  {item.status === "published" && (item.published_draft || item.draft) && (
+                    <a
+                      className="btn ghost sm"
+                      href={`/guides/${(item.published_draft || item.draft).slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      View live guide
+                    </a>
                   )}
                 </div>
                 {item.draft && (

@@ -17,7 +17,7 @@ export async function POST(request) {
     const { admin } = await requireSeoAdmin(supabase);
     const { data: opportunity, error: findError } = await admin
       .from("seo_opportunities")
-      .select("id, title, draft")
+      .select("id, title, draft, first_published_at")
       .eq("id", id)
       .single();
 
@@ -32,10 +32,12 @@ export async function POST(request) {
 
     const { data: published } = await admin
       .from("seo_opportunities")
-      .select("id, draft")
+      .select("id, draft, published_draft")
       .eq("status", "published");
     const collision = (published || []).find(
-      (item) => item.id !== opportunity.id && normaliseSlug(item.draft?.slug) === slug
+      (item) =>
+        item.id !== opportunity.id &&
+        normaliseSlug((item.published_draft || item.draft)?.slug) === slug
     );
     if (collision) {
       return NextResponse.json({ error: `/guides/${slug} is already published.` }, { status: 409 });
@@ -45,7 +47,14 @@ export async function POST(request) {
     const now = new Date().toISOString();
     const { data: saved, error: saveError } = await admin
       .from("seo_opportunities")
-      .update({ draft, status: "published", published_at: now, updated_at: now })
+      .update({
+        draft,
+        published_draft: draft,
+        status: "published",
+        first_published_at: opportunity.first_published_at || now,
+        published_at: now,
+        updated_at: now,
+      })
       .eq("id", id)
       .select()
       .single();
