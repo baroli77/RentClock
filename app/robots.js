@@ -6,7 +6,7 @@ export default function robots() {
       userAgent: "*",
       allow: "/",
       // Keep private/app areas out of the index
-      disallow: ["/dashboard", "/seo", "/api/", "/login"],
+      disallow: ["/dashboard", "/seo", "/growth", "/api/", "/login"],
     },
     sitemap: `${SITE}/sitemap.xml`,
   };
