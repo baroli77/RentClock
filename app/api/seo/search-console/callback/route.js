@@ -12,12 +12,14 @@ export async function GET(request) {
   const denied = url.searchParams.get("error");
   const seoFinish = (message) => NextResponse.redirect(new URL(`/seo?searchConsoleError=${encodeURIComponent(message)}`, siteUrl()));
   const growthFinish = (message) => NextResponse.redirect(new URL(`/growth?connectionError=${encodeURIComponent(message)}`, siteUrl()));
+  let growthFlow = false;
 
   if (!state) return seoFinish("Google did not return a valid connection response.");
 
   try {
     const admin = createAdminClient();
     const { data: growthState } = await admin.from("growth_oauth_states").select("*").eq("state", state).eq("provider", "google").maybeSingle();
+    growthFlow = Boolean(growthState);
 
     if (growthState) {
       await admin.from("growth_oauth_states").delete().eq("state", state);
@@ -62,8 +64,6 @@ export async function GET(request) {
     if (saveError) throw new Error(saveError.message);
     return NextResponse.redirect(new URL("/seo?searchConsole=connected", siteUrl()));
   } catch (error) {
-    const admin = createAdminClient();
-    const { data: growthState } = await admin.from("growth_oauth_states").select("state").eq("state", state).maybeSingle();
-    return growthState ? growthFinish(error.message || "Google Ads could not be connected.") : seoFinish(error.message || "Google Search Console could not be connected.");
+    return growthFlow ? growthFinish(error.message || "Google Ads could not be connected.") : seoFinish(error.message || "Google Search Console could not be connected.");
   }
 }
