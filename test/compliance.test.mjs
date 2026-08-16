@@ -6,6 +6,8 @@ import {
   addMonths,
   oneoffStatus,
   recurringStatus,
+  rightToRentOccupiers,
+  rightToRentFollowUps,
   toISO,
 } from "../lib/compliance.js";
 
@@ -26,10 +28,10 @@ test("deposit deadline is based on receipt, not tenancy start", () => {
   assert.equal(toISO(status.due), "2026-07-10");
 });
 
-test("Right to Rent and post-Act written terms have tenancy deadlines", () => {
-  const property = { tenancyStart: "2026-07-20", agreementType: "written" };
-  assert.equal(toISO(oneoffStatus(item("rtr"), false, property).due), "2026-07-20");
-  assert.equal(toISO(oneoffStatus(item("wsot"), false, property).due), "2026-07-20");
+test("Right to Rent and post-Act written terms use the agreement date", () => {
+  const property = { agreementDate: "2026-07-01", tenancyStart: "2026-07-20", agreementType: "written" };
+  assert.equal(toISO(oneoffStatus(item("rtr"), false, property).due), "2026-07-01");
+  assert.equal(toISO(oneoffStatus(item("wsot"), false, property).due), "2026-07-01");
 });
 
 test("legacy How to Rent is opt-in and pre-Act verbal terms use 31 May deadline", () => {
@@ -43,3 +45,34 @@ test("gas-free property and registered EPC exemption are not applicable", () => 
   assert.equal(recurringStatus({ applicability: { epcExempt: true } }, recurring("epc")).code, "na");
 });
 
+test("gas renewal preserves a 62-day two-calendar-month window", () => {
+  const status = recurringStatus({
+    dates: { gas: "2026-11-30" },
+    anchors: { gas: "2027-01-31" },
+    applicability: { gas: true },
+  }, recurring("gas"));
+  assert.equal(status.anchored, true);
+  assert.equal(toISO(status.due), "2028-01-31");
+});
+
+test("Legionella records are event-based and never invent a fixed deadline", () => {
+  const status = recurringStatus({ dates: { legionella: "2024-08-16" } }, recurring("legionella"));
+  assert.equal(status.code, "ok");
+  assert.equal(status.due, null);
+});
+
+test("Right to Rent supports multiple occupiers and separate follow-up dates", () => {
+  const property = {
+    rightToRent: {
+      occupiers: [
+        { id: "a", name: "Alex", followUpDue: "2026-08-20" },
+        { id: "b", name: "Sam", followUpDue: "" },
+      ],
+    },
+  };
+  assert.equal(rightToRentOccupiers(property).length, 2);
+  const followUps = rightToRentFollowUps(property);
+  assert.equal(followUps.length, 1);
+  assert.match(followUps[0].item.label, /Alex/);
+  assert.equal(toISO(followUps[0].st.due), "2026-08-20");
+});

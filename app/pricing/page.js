@@ -4,7 +4,7 @@ import BrandLogo from "@/components/BrandLogo";
 export const metadata = {
   title: "Pricing — £5.99/month, unlimited properties",
   description:
-    "RentClock is £5.99/month or £59.90/year for unlimited properties. Full compliance checklist, email reminders, document vault, and a 14-day free trial.",
+    "RentClock is £5.99/month or £59.90/year for unlimited properties. Core compliance checklist, email reminders, document vault, and a 14-day free trial.",
   alternates: { canonical: "/pricing" },
   openGraph: {
     type: "website",
@@ -41,12 +41,13 @@ export default function Pricing() {
         <div className="price-alt mono">or £59.90/year — two months free</div>
         <ul className="price-list">
           <li>Unlimited properties — no per-tenancy pricing</li>
-          <li>Full statutory checklist per property</li>
+          <li>Core national compliance deadlines per property</li>
           <li>Email reminders at 60/30/14/7/0 days & overdue</li>
           <li>Weekly alert for anything not yet recorded</li>
           <li>Certificate document vault</li>
           <li>Renters&rsquo; Rights Act updates as phases go live</li>
         </ul>
+        <p className="price-fine">Local licensing, repairs and event-based duties can vary. RentClock does not replace council checks or legal advice.</p>
         <Link href="/login" className="btn brass">
           Start 14-day free trial
         </Link>

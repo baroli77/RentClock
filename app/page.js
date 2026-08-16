@@ -58,7 +58,7 @@ export default function Landing() {
           <div>
             <p className="eyebrow">For landlords with 1–10 properties · England</p>
             <h1>Know what&rsquo;s due.<br />Before it becomes expensive.</h1>
-            <p className="home-v2-lead">RentClock puts every gas safety, EICR, EPC, deposit and Renters&rsquo; Rights deadline in one simple ledger — then emails you before it lapses.</p>
+            <p className="home-v2-lead">RentClock puts core gas safety, EICR, EPC, deposit and selected Renters&rsquo; Rights deadlines in one simple ledger — then emails you before tracked dates lapse.</p>
             <div className="home-v2-hero-actions">
               <Link href="/login" className="btn brass">Start your 14-day free trial</Link>
               <Link href="/login" className="home-v2-sign-in">Already have an account? Sign in</Link>
@@ -69,14 +69,14 @@ export default function Landing() {
           <aside className="home-v2-ledger" aria-label="Example RentClock deadline ledger">
             <div className="home-v2-ledger-top"><span>Your deadline ledger</span><span>saved</span></div>
             <div className="home-v2-property">12 Mill Road</div>
-            <Deadline name="Gas safety certificate" detail="Renewed 4 Jun 2025" status="DUE IN 18 DAYS" />
-            <Deadline name="Electrical safety report" detail="Valid until 22 Aug 2026" status="ON TRACK" ok />
-            <Deadline name="EPC" detail="Band C · valid until 2033" status="ON TRACK" ok />
+            <Deadline name="Gas safety certificate" detail="Renewal date recorded" status="DUE SOON" />
+            <Deadline name="Electrical safety report" detail="Earlier report date supported" status="ON TRACK" ok />
+            <Deadline name="EPC" detail="Band and expiry recorded" status="ON TRACK" ok />
           </aside>
         </section>
 
         <div className="home-v2-trust" aria-label="RentClock benefits">
-          <span><b>One place</b> for every property deadline</span>
+          <span><b>One place</b> for core property deadlines</span>
           <span><b>Email reminders</b> before anything lapses</span>
           <span><b>Unlimited properties</b> on one simple plan</span>
         </div>
@@ -92,9 +92,9 @@ export default function Landing() {
               <h3>RentClock</h3>
               <p>Your compliance system, without the complexity.</p>
               <ul>
-                <li>✓ Reminders before every deadline</li>
+                <li>✓ Reminders before every tracked deadline</li>
                 <li>✓ Certificates beside each property</li>
-                <li>✓ England-specific compliance checklist</li>
+                <li>✓ England-specific core compliance checklist</li>
                 <li>✓ £5.99/month, unlimited properties</li>
               </ul>
             </article>
@@ -106,7 +106,7 @@ export default function Landing() {
           <p className="eyebrow">Three simple steps</p>
           <h2>Set it up once. Stay ahead all year.</h2>
           <div className="home-v2-steps">
-            <Step number="01" title="Add each property">RentClock creates its England compliance checklist automatically.</Step>
+            <Step number="01" title="Add each property">RentClock creates its core England compliance checklist automatically.</Step>
             <Step number="02" title="Add the last renewal date">Attach the certificate while it is in front of you.</Step>
             <Step number="03" title="Get the reminder first">We email you at 60, 30, 14 and 7 days, on the day and when overdue.</Step>
           </div>
@@ -116,7 +116,7 @@ export default function Landing() {
           <div>
             <p className="eyebrow">Built for England</p>
             <h2>Rules change.<br />Your checklist keeps up.</h2>
-            <p>RentClock covers recurring safety dates and the Renters&rsquo; Rights Act duties that arrive in phases, so you do not have to track every announcement yourself.</p>
+            <p>RentClock covers core recurring safety dates and selected Renters&rsquo; Rights Act duties. Local licensing and event-based obligations still need property-specific checks.</p>
           </div>
           <div>
             <Faq question="Can other people see my properties?">No. Your data and documents are private to your account.</Faq>

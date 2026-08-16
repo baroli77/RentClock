@@ -9,13 +9,15 @@ import {
   RECURRING,
   ONEOFFS,
   EPC_BANDS,
-  DAY,
+  addMonths,
   today,
   parseISO,
   toISO,
   fmt,
   recurringStatus,
   oneoffStatus,
+  rightToRentOccupiers,
+  rightToRentFollowUps,
   STATUS_META,
 } from "@/lib/compliance";
 
@@ -133,15 +135,37 @@ function DocList({ prop, itemKey, onUpdate }) {
 function AddPropertyForm({ onAdd, onCancel }) {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
+  const [agreementDate, setAgreementDate] = useState("");
   const [tenancyStart, setTenancyStart] = useState("");
+  const [propertyType, setPropertyType] = useState("");
+  const [bedrooms, setBedrooms] = useState("");
+  const [households, setHouseholds] = useState("");
+  const [residents, setResidents] = useState("");
+  const [occupied, setOccupied] = useState(true);
+  const [furnished, setFurnished] = useState("");
+  const [jointLandlords, setJointLandlords] = useState("");
+  const [error, setError] = useState("");
 
   const submit = () => {
-    if (!name.trim() && !address.trim()) return;
+    if (!address.trim()) {
+      setError("Enter the full property address.");
+      return;
+    }
     onAdd({
       id: `tmp-${Date.now().toString(36)}`,
       name: name.trim() || address.trim(),
       address: address.trim(),
+      agreementDate,
       tenancyStart,
+      propertyDetails: {
+        propertyType,
+        bedrooms: bedrooms === "" ? null : Number(bedrooms),
+        households: households === "" ? null : Number(households),
+        residents: residents === "" ? null : Number(residents),
+        occupied,
+        furnished,
+        jointLandlords: jointLandlords.trim(),
+      },
       dates: {},
       checks: {},
       anchors: {},
@@ -149,7 +173,7 @@ function AddPropertyForm({ onAdd, onCancel }) {
       epcBand: "",
       agreementType: "written",
       applicability: { gas: true, deposit: true, epcExempt: false, howtorent: false },
-      rightToRent: { occupierName: "", method: "", checkedOn: "", notes: "" },
+      rightToRent: { occupiers: [] },
     });
   };
 
@@ -162,14 +186,45 @@ function AddPropertyForm({ onAdd, onCancel }) {
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Flat 2, Mill Road" />
         </label>
         <label>
-          <span className="lbl">Address</span>
+          <span className="lbl">Full address *</span>
           <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Full address" />
+        </label>
+        <label>
+          <span className="lbl">Tenancy agreed / signed</span>
+          <input type="date" value={agreementDate} onChange={(e) => setAgreementDate(e.target.value)} />
         </label>
         <label>
           <span className="lbl">Current tenancy start</span>
           <input type="date" value={tenancyStart} onChange={(e) => setTenancyStart(e.target.value)} />
         </label>
+        <label>
+          <span className="lbl">Property type</span>
+          <select value={propertyType} onChange={(e) => setPropertyType(e.target.value)}>
+            <option value="">Select…</option>
+            <option value="house">House</option>
+            <option value="flat">Flat</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label><span className="lbl">Bedrooms</span><input type="number" min="0" value={bedrooms} onChange={(e) => setBedrooms(e.target.value)} /></label>
+        <label><span className="lbl">Households</span><input type="number" min="0" value={households} onChange={(e) => setHouseholds(e.target.value)} /></label>
+        <label><span className="lbl">Adult and child residents</span><input type="number" min="0" value={residents} onChange={(e) => setResidents(e.target.value)} /></label>
+        <label>
+          <span className="lbl">Furnishing</span>
+          <select value={furnished} onChange={(e) => setFurnished(e.target.value)}>
+            <option value="">Select…</option>
+            <option value="furnished">Furnished</option>
+            <option value="part-furnished">Part-furnished</option>
+            <option value="unfurnished">Unfurnished</option>
+          </select>
+        </label>
+        <label><span className="lbl">Joint landlords</span><input value={jointLandlords} onChange={(e) => setJointLandlords(e.target.value)} placeholder="Names or reference" /></label>
+        <label className="check-wrap compact-check">
+          <input type="checkbox" checked={occupied} onChange={(e) => setOccupied(e.target.checked)} />
+          <span>Currently occupied</span>
+        </label>
       </div>
+      {error && <p className="trial-error">{error}</p>}
       <div className="form-actions">
         <button className="btn primary" onClick={submit}>Add property</button>
         <button className="btn ghost" onClick={onCancel}>Cancel</button>
@@ -179,13 +234,15 @@ function AddPropertyForm({ onAdd, onCancel }) {
 }
 
 function NewTenancyForm({ onConfirm, onCancel }) {
+  const [agreementDate, setAgreementDate] = useState(toISO(today()));
   const [start, setStart] = useState(toISO(today()));
   return (
     <div className="newtenancy">
-      <span className="lbl">New tenancy start date</span>
+      <span className="lbl">New tenancy dates</span>
       <div className="nt-row">
-        <input type="date" value={start} onChange={(e) => setStart(e.target.value)} />
-        <button className="btn primary sm" onClick={() => onConfirm(start)}>Confirm</button>
+        <label><span className="lbl">Agreed / signed</span><input type="date" value={agreementDate} onChange={(e) => setAgreementDate(e.target.value)} /></label>
+        <label><span className="lbl">Starts</span><input type="date" value={start} onChange={(e) => setStart(e.target.value)} /></label>
+        <button className="btn primary sm" onClick={() => onConfirm({ agreementDate, start })}>Confirm</button>
         <button className="btn ghost sm" onClick={onCancel}>Cancel</button>
       </div>
       <div className="nt-note">
@@ -212,8 +269,8 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
       // anchors are never computed against half-entered dates.
       const ndValid = nd && nd.getFullYear() >= 1900;
       if (prevStatus.due && ndValid) {
-        const gap = Math.round((prevStatus.due.getTime() - nd.getTime()) / DAY);
-        if (gap >= 0 && gap <= 61) {
+        const windowStart = addMonths(prevStatus.due, -2);
+        if (nd >= windowStart && nd <= prevStatus.due) {
           anchors.gas = toISO(prevStatus.due);
         } else {
           delete anchors.gas;
@@ -229,7 +286,18 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
     onUpdate({ ...prop, checks: { ...prop.checks, [key]: !prop.checks?.[key] } });
   };
 
-  const startNewTenancy = (startISO) => {
+  const occupiers = rightToRentOccupiers(prop);
+  const setOccupiers = (next) => onUpdate({ ...prop, rightToRent: { occupiers: next } });
+  const addOccupier = () => setOccupiers([
+    ...occupiers,
+    { id: `rtr-${Date.now().toString(36)}`, name: "", method: "", checkedOn: "", followUpDue: "", notes: "" },
+  ]);
+  const updateOccupier = (id, patch) => setOccupiers(
+    occupiers.map((occupier) => (occupier.id === id ? { ...occupier, ...patch } : occupier))
+  );
+  const removeOccupier = (id) => setOccupiers(occupiers.filter((occupier) => occupier.id !== id));
+
+  const startNewTenancy = ({ start, agreementDate }) => {
     const checks = { ...(prop.checks || {}) };
     for (const item of ONEOFFS) {
       if (item.perTenancy) checks[item.key] = false;
@@ -239,21 +307,24 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
     delete dates.rtrFollowUpDue;
     onUpdate({
       ...prop,
-      tenancyStart: startISO,
+      agreementDate,
+      tenancyStart: start,
       checks,
       dates,
-      rightToRent: { occupierName: "", method: "", checkedOn: "", notes: "" },
+      rightToRent: { occupiers: [] },
       applicability: { ...(prop.applicability || {}), howtorent: false },
     });
     setNewTenancy(false);
   };
 
   const statuses = RECURRING.map((item) => ({ item, st: recurringStatus(prop, item) }));
+  const followUps = rightToRentFollowUps(prop);
   const bandBad =
     prop.applicability?.epcExempt !== true && (prop.epcBand === "F" || prop.epcBand === "G");
   const overdueCount =
     statuses.filter((s) => s.st.code === "overdue").length +
     ONEOFFS.filter((i) => oneoffStatus(i, prop.checks?.[i.key], prop).code === "overdue").length +
+    followUps.filter((entry) => entry.st.code === "overdue").length +
     (bandBad ? 1 : 0);
 
   return (
@@ -272,6 +343,14 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
         <div className="prop-body">
           <div className="tenancy-row">
             <div>
+              <span className="lbl">Tenancy agreed / signed</span>
+              <input
+                type="date"
+                value={prop.agreementDate || ""}
+                onChange={(e) => onUpdate({ ...prop, agreementDate: e.target.value })}
+              />
+            </div>
+            <div>
               <span className="lbl">Tenancy start</span>
               <input
                 type="date"
@@ -284,6 +363,30 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
                 New tenancy started
               </button>
             )}
+          </div>
+          <div className="eyebrow">Property details</div>
+          <div className="form-grid property-details-grid">
+            <label>
+              <span className="lbl">Full address</span>
+              <input value={prop.address || ""} onChange={(e) => onUpdate({ ...prop, address: e.target.value })} />
+            </label>
+            <label>
+              <span className="lbl">Property type</span>
+              <select value={prop.propertyDetails?.propertyType || ""} onChange={(e) => onUpdate({ ...prop, propertyDetails: { ...(prop.propertyDetails || {}), propertyType: e.target.value } })}>
+                <option value="">Select…</option><option value="house">House</option><option value="flat">Flat</option><option value="other">Other</option>
+              </select>
+            </label>
+            <label><span className="lbl">Bedrooms</span><input type="number" min="0" value={prop.propertyDetails?.bedrooms ?? ""} onChange={(e) => onUpdate({ ...prop, propertyDetails: { ...(prop.propertyDetails || {}), bedrooms: e.target.value === "" ? null : Number(e.target.value) } })} /></label>
+            <label><span className="lbl">Households</span><input type="number" min="0" value={prop.propertyDetails?.households ?? ""} onChange={(e) => onUpdate({ ...prop, propertyDetails: { ...(prop.propertyDetails || {}), households: e.target.value === "" ? null : Number(e.target.value) } })} /></label>
+            <label><span className="lbl">Residents</span><input type="number" min="0" value={prop.propertyDetails?.residents ?? ""} onChange={(e) => onUpdate({ ...prop, propertyDetails: { ...(prop.propertyDetails || {}), residents: e.target.value === "" ? null : Number(e.target.value) } })} /></label>
+            <label>
+              <span className="lbl">Furnishing</span>
+              <select value={prop.propertyDetails?.furnished || ""} onChange={(e) => onUpdate({ ...prop, propertyDetails: { ...(prop.propertyDetails || {}), furnished: e.target.value } })}>
+                <option value="">Select…</option><option value="furnished">Furnished</option><option value="part-furnished">Part-furnished</option><option value="unfurnished">Unfurnished</option>
+              </select>
+            </label>
+            <label><span className="lbl">Joint landlords</span><input value={prop.propertyDetails?.jointLandlords || ""} onChange={(e) => onUpdate({ ...prop, propertyDetails: { ...(prop.propertyDetails || {}), jointLandlords: e.target.value } })} placeholder="Names or reference" /></label>
+            <label className="check-wrap compact-check"><input type="checkbox" checked={prop.propertyDetails?.occupied !== false} onChange={(e) => onUpdate({ ...prop, propertyDetails: { ...(prop.propertyDetails || {}), occupied: e.target.checked } })} /><span>Currently occupied</span></label>
           </div>
           <div className="applicability-grid">
             <label>
@@ -340,6 +443,9 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
                   {item.key === "gas" && st.anchored && (
                     <div className="row-note anchored">Original expiry preserved — renewed within the final 2 months.</div>
                   )}
+                  {item.eventBased && (
+                    <div className="row-note anchored">No automatic expiry: review this record when the property or risk changes.</div>
+                  )}
                   {item.key === "gas" && (
                     <label className="check-wrap compact-check row-option">
                       <input
@@ -392,7 +498,7 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
                   <DocList prop={prop} itemKey={item.key} onUpdate={onUpdate} />
                 </div>
                 <div className="row-date">
-                  <span className="lbl">Last done</span>
+                  <span className="lbl">{item.eventBased ? "Last reviewed" : "Last done"}</span>
                   <input
                     type="date"
                     value={prop.dates?.[item.key] || ""}
@@ -411,12 +517,11 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
                   )}
                 </div>
                 <div className="row-due mono">
-                  <span className="lbl">Next due</span>
-                  {fmt(st.due)}
+                  {!item.eventBased && <><span className="lbl">Next due</span>{fmt(st.due)}</>}
                 </div>
                 <div className="row-status">
-                  <DaysChip days={st.days} />
-                  <Stamp code={st.code} tilt />
+                  {!item.eventBased && <DaysChip days={st.days} />}
+                  {item.eventBased && st.code === "ok" ? <span className="stamp st-ok">RECORDED</span> : <Stamp code={st.code} tilt />}
                 </div>
               </div>
             ))}
@@ -430,9 +535,10 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
               return (
                 <div className="row oneoff" key={item.key}>
                   <div className="row-main">
-                    <label className="check-wrap">
+                    <div className="check-wrap">
                       <input
                         type="checkbox"
+                        aria-label={item.label}
                         checked={done}
                         disabled={(item.pending && !done) || st.code === "na"}
                         onChange={() => toggleCheck(item.key)}
@@ -454,63 +560,27 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
                           </label>
                         )}
                         {item.key === "rtr" && (
-                          <div className="rtr-record">
-                            <label>
-                              <span className="lbl">Adult occupier</span>
-                              <input
-                                value={prop.rightToRent?.occupierName || ""}
-                                onChange={(e) =>
-                                  onUpdate({
-                                    ...prop,
-                                    rightToRent: { ...(prop.rightToRent || {}), occupierName: e.target.value },
-                                  })
-                                }
-                                placeholder="Name"
-                              />
-                            </label>
-                            <label>
-                              <span className="lbl">Check method</span>
-                              <select
-                                value={prop.rightToRent?.method || ""}
-                                onChange={(e) =>
-                                  onUpdate({
-                                    ...prop,
-                                    rightToRent: { ...(prop.rightToRent || {}), method: e.target.value },
-                                  })
-                                }
-                              >
-                                <option value="">Select…</option>
-                                <option value="online">Home Office online service</option>
-                                <option value="documents">Original documents</option>
-                                <option value="landlord-checking-service">Landlord Checking Service</option>
-                              </select>
-                            </label>
-                            <label>
-                              <span className="lbl">Check carried out</span>
-                              <input
-                                type="date"
-                                value={prop.rightToRent?.checkedOn || ""}
-                                onChange={(e) =>
-                                  onUpdate({
-                                    ...prop,
-                                    rightToRent: { ...(prop.rightToRent || {}), checkedOn: e.target.value },
-                                  })
-                                }
-                              />
-                            </label>
-                            <label className="rtr-notes">
-                              <span className="lbl">Notes</span>
-                              <input
-                                value={prop.rightToRent?.notes || ""}
-                                onChange={(e) =>
-                                  onUpdate({
-                                    ...prop,
-                                    rightToRent: { ...(prop.rightToRent || {}), notes: e.target.value },
-                                  })
-                                }
-                                placeholder="Evidence retained, reference, or follow-up detail"
-                              />
-                            </label>
+                          <div>
+                            {occupiers.map((occupier, index) => (
+                              <div className="rtr-record" key={occupier.id || index}>
+                                <label><span className="lbl">Adult occupier</span><input value={occupier.name || ""} onChange={(e) => updateOccupier(occupier.id, { name: e.target.value })} placeholder="Name" /></label>
+                                <label>
+                                  <span className="lbl">Check method</span>
+                                  <select value={occupier.method || ""} onChange={(e) => updateOccupier(occupier.id, { method: e.target.value })}>
+                                    <option value="">Select…</option>
+                                    <option value="online">Home Office online service</option>
+                                    <option value="documents">Original documents</option>
+                                    <option value="digital-verification">Right to Rent digital verification provider</option>
+                                    <option value="landlord-checking-service">Landlord Checking Service</option>
+                                  </select>
+                                </label>
+                                <label><span className="lbl">Check carried out</span><input type="date" value={occupier.checkedOn || ""} onChange={(e) => updateOccupier(occupier.id, { checkedOn: e.target.value })} /></label>
+                                <label><span className="lbl">Follow-up due</span><input type="date" value={occupier.followUpDue || ""} onChange={(e) => updateOccupier(occupier.id, { followUpDue: e.target.value })} /></label>
+                                <label className="rtr-notes"><span className="lbl">Notes</span><input value={occupier.notes || ""} onChange={(e) => updateOccupier(occupier.id, { notes: e.target.value })} placeholder="Evidence retained or reference" /></label>
+                                <button type="button" className="btn danger-ghost sm" onClick={() => removeOccupier(occupier.id)}>Remove occupier</button>
+                              </div>
+                            ))}
+                            <button type="button" className="btn ghost sm" onClick={addOccupier}>+ Add adult occupier</button>
                           </div>
                         )}
                         {item.userDateField && (
@@ -524,7 +594,7 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
                           </label>
                         )}
                       </div>
-                    </label>
+                    </div>
                     <DocList prop={prop} itemKey={item.key} onUpdate={onUpdate} />
                   </div>
                   <div className="row-due mono">
@@ -541,6 +611,16 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
                 </div>
               );
             })}
+            {followUps.map(({ item, st }) => (
+              <div className="row oneoff" key={item.key}>
+                <div className="row-main">
+                  <div className="row-label">{item.label}</div>
+                  <div className="row-note">Complete the follow-up before the current statutory excuse expires.</div>
+                </div>
+                <div className="row-due mono"><span className="lbl">Deadline</span>{fmt(st.due)}</div>
+                <div className="row-status"><DaysChip days={st.days} /><Stamp code={st.code} tilt /></div>
+              </div>
+            ))}
           </div>
 
           <button className="btn danger-ghost" onClick={() => onRemove(prop.id)}>
@@ -716,10 +796,10 @@ export default function RentClockDashboard({ initialProperties, email, access, b
   const propAlerts = (p) => {
     const rec = RECURRING.map((item) => recurringStatus(p, item));
     const one = ONEOFFS.map((item) => oneoffStatus(item, p.checks?.[item.key], p));
-    const all = [...rec, ...one];
+    const all = [...rec, ...one, ...rightToRentFollowUps(p).map((entry) => entry.st)];
     let overdue = all.filter((st) => st.code === "overdue").length;
     const soon = all.filter((st) => st.code === "soon").length;
-    if (p.epcBand === "F" || p.epcBand === "G") overdue += 1;
+    if (p.applicability?.epcExempt !== true && (p.epcBand === "F" || p.epcBand === "G")) overdue += 1;
     return { overdue, soon };
   };
 
@@ -808,12 +888,15 @@ export default function RentClockDashboard({ initialProperties, email, access, b
       const st = oneoffStatus(item, p.checks?.[item.key], p);
       if (st.due && !["ok", "na"].includes(st.code)) entries.push({ prop: p, label: item.label, st });
     }
+    for (const entry of rightToRentFollowUps(p)) {
+      entries.push({ prop: p, label: entry.item.label, st: entry.st });
+    }
   }
   const dated = entries
     .filter((e) => e.st.due && !["ok", "na"].includes(e.st.code))
     .sort((a, b) => a.st.due - b.st.due);
   const unrecorded = entries.filter((e) => e.st.code === "missing").length;
-  const bandProblems = props.filter((p) => p.epcBand === "F" || p.epcBand === "G").length;
+  const bandProblems = props.filter((p) => p.applicability?.epcExempt !== true && (p.epcBand === "F" || p.epcBand === "G")).length;
   const overdue = entries.filter((e) => e.st.code === "overdue").length + bandProblems;
   const next = dated.find((e) => e.st.days >= 0) || dated[0] || null;
 
@@ -901,9 +984,9 @@ export default function RentClockDashboard({ initialProperties, email, access, b
         <section className="empty card">
           <h2>Start your ledger</h2>
           <p>
-            Add a property and RentClock builds its statutory checklist: gas safety, EICR, EPC,
-            alarms, deposit protection, and the new Renters’ Rights Act tasks — then counts down
-            every renewal so nothing lapses.
+            Add a property and RentClock builds a core checklist for gas safety, EICR, EPC,
+            alarms, deposit protection, and selected Renters’ Rights Act tasks — then counts down
+            the dates you record. Check local licensing and property-specific duties separately.
           </p>
           {access && (
             <button className="btn primary" onClick={() => setView("add")}>
@@ -1044,9 +1127,9 @@ export default function RentClockDashboard({ initialProperties, email, access, b
 
       <footer className="foot">
         <p>
-          Signed in as {email}. RentClock tracks England’s private rented sector rules including the
-          Renters’ Rights Act 2025 (in force from 1 May 2026). It’s a deadline ledger, not legal
-          advice.
+          Signed in as {email}. RentClock tracks core England private rented sector deadlines and
+          selected Renters’ Rights Act 2025 tasks. Local and event-based duties may also apply. It’s
+          a deadline ledger, not legal advice.
         </p>
       </footer>
     </div>
