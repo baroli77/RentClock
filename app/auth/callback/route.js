@@ -30,6 +30,7 @@ export async function GET(request) {
               eventType: "signup",
               sessionId: request.cookies.get("rc_attribution_session")?.value,
               externalUserId: user.id,
+              dedupeKey: `rentclock:signup:${user.id}`,
               metadata: { source: "supabase_magic_link" },
             });
           }
