@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { Resend } from "resend";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { newMemberEmail } from "@/lib/email";
+import { trackMarketingEvent } from "@/lib/marketingman-attribution";
 
 // Stripe webhook: keeps profiles.subscription_status in sync.
 // Events to enable on the endpoint: checkout.session.completed,
@@ -40,8 +41,6 @@ export async function POST(request) {
       .select("id, email, owner_notification_sent_at")
       .maybeSingle();
     if (error) throw error;
-    // Heal a checkout-time profile linking failure using Stripe's immutable
-    // client_reference_id/metadata rather than leaving a paying user locked out.
     if (!data && userId) {
       ({ data, error } = await admin
         .from("profiles")
@@ -59,7 +58,6 @@ export async function POST(request) {
     switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object;
-      // Trial subscriptions start as 'trialing'; paid-immediately as 'active'.
       const sub = await stripe.subscriptions.retrieve(session.subscription);
       const profile = await setStatusByCustomer(
         session.customer,
@@ -67,8 +65,18 @@ export async function POST(request) {
         session.client_reference_id || session.metadata?.supabase_user_id || sub.metadata?.supabase_user_id
       );
 
-      // The checkout event can be retried by Stripe. Claim the notification in
-      // the database first so the owner only receives one email per member.
+      if (sub.status === "trialing") {
+        await trackMarketingEvent({
+          eventType: "trial",
+          externalUserId: profile.id,
+          dedupeKey: `rentclock:stripe:${event.id}`,
+          metadata: {
+            stripeSubscriptionId: sub.id,
+            planInterval: sub.items.data[0]?.price?.recurring?.interval || null,
+          },
+        });
+      }
+
       if (profile && !profile.owner_notification_sent_at && process.env.RESEND_API_KEY) {
         const { data: claimed, error: claimError } = await admin
           .from("profiles")
@@ -124,7 +132,22 @@ export async function POST(request) {
       const invoice = event.data.object;
       if (invoice.subscription) {
         const sub = await stripe.subscriptions.retrieve(stripeId(invoice.subscription));
-        await setStatusByCustomer(invoice.customer, sub.status, sub.metadata?.supabase_user_id);
+        const profile = await setStatusByCustomer(invoice.customer, sub.status, sub.metadata?.supabase_user_id);
+        const amountPaid = Math.max(0, Number(invoice.amount_paid || 0));
+        if (amountPaid > 0) {
+          await trackMarketingEvent({
+            eventType: "purchase",
+            externalUserId: profile.id,
+            revenuePence: amountPaid,
+            dedupeKey: `rentclock:stripe:${event.id}`,
+            metadata: {
+              stripeInvoiceId: invoice.id,
+              stripeSubscriptionId: sub.id,
+              billingReason: invoice.billing_reason || null,
+              currency: invoice.currency || "gbp",
+            },
+          });
+        }
       }
       break;
     }
