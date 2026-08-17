@@ -1,5 +1,7 @@
 import "./globals.css";
+import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
+import MarketingAttribution from "@/components/MarketingAttribution";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com";
 
@@ -57,6 +59,9 @@ export default function RootLayout({ children }) {
     <html lang="en-GB">
       <body>
         {children}
+        <Suspense fallback={null}>
+          <MarketingAttribution />
+        </Suspense>
         <Analytics />
       </body>
     </html>
