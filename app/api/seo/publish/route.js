@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireSeoAdmin, seoErrorStatus } from "@/lib/seo";
 import { GUIDES } from "@/lib/guides";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +66,11 @@ export async function POST(request) {
       .select()
       .single();
     if (saveError) throw new Error(saveError.message);
+
+    revalidateTag("published-guides");
+    revalidatePath("/guides");
+    revalidatePath(`/guides/${slug}`);
+    revalidatePath("/sitemap.xml");
 
     return NextResponse.json({ opportunity: saved, url: `/guides/${slug}` });
   } catch (error) {

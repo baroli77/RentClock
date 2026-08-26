@@ -825,3 +825,53 @@ input[type="checkbox"] {
   .keyword-idea { align-items: flex-start; flex-direction: column; }
   .keyword-ideas-head { align-items: flex-start; flex-direction: column; gap: 3px; }
 }
+
+/* Public SEO pages and tools */
+.seo-item .seo-metrics { margin-top: 6px; color: var(--green); font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+.public-head { margin-bottom: 0; }
+.public-foot { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-top: 52px; }
+.marketing-hero { display: grid; grid-template-columns: 1.08fr .92fr; gap: 44px; align-items: center; padding: 58px 0 42px; }
+.marketing-hero h1, .tool-page h1, .marketing-proof h2 { font-family: 'Bricolage Grotesque', sans-serif; letter-spacing: -.045em; line-height: 1.06; }
+.marketing-hero h1 { font-size: clamp(38px, 6vw, 62px); margin: 0 0 18px; }
+.marketing-lead { color: var(--grey); font-size: 18px; line-height: 1.6; max-width: 62ch; }
+.marketing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0 54px; }
+.marketing-grid .card { padding: 24px; }
+.marketing-grid h2, .tool-card h2 { font: 600 20px 'Bricolage Grotesque', sans-serif; margin: 0 0 7px; }
+.marketing-grid p, .marketing-proof p { color: var(--grey); margin: 0; }
+.marketing-proof { display: grid; grid-template-columns: 1.2fr .8fr; gap: 28px; align-items: start; margin-bottom: 52px; }
+.marketing-proof h2 { font-size: clamp(28px, 4vw, 40px); margin: 0 0 12px; }
+.marketing-proof .card { padding: 24px; }
+.marketing-proof .card p { margin-top: 12px; }
+.marketing-proof a, .article a, .tool-page a { color: var(--brass); }
+.tool-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.tool-card { color: inherit; text-decoration: none; padding: 24px; }
+.tool-card:hover { border-color: var(--brass); }
+.tool-card p { color: var(--grey); }
+.tool-card span { color: var(--brass); font-weight: 600; }
+.tool-page { max-width: 760px; margin: 46px auto; }
+.tool-page h1 { font-size: clamp(34px, 6vw, 52px); margin: 0 0 14px; }
+.calculator, .calendar-card { padding: 26px; margin: 30px 0; border-color: var(--brass); }
+.calculator label { display: grid; gap: 6px; font-weight: 600; margin-bottom: 16px; }
+.calculator label span { color: var(--grey); font-weight: 400; }
+.calculator input { max-width: 330px; }
+.calculator-result { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; background: var(--green-bg); padding: 18px; border-radius: 8px; margin-top: 18px; }
+.calculator-result span { color: var(--grey); }
+.calculator-result strong { text-align: right; }
+.calculator-warning { color: var(--grey); font-size: 12.5px; margin: 18px 0 0; }
+.calendar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.calendar-card ol { padding: 0; list-style: none; }
+.calendar-card li { display: grid; grid-template-columns: 130px 1fr; gap: 4px 16px; border-top: 1px solid var(--line); padding: 15px 0; }
+.calendar-card time { color: var(--brass); font: 600 12px 'IBM Plex Mono', monospace; grid-row: span 2; }
+.calendar-card span { color: var(--grey); }
+.article-byline { color: var(--grey); font-size: 12.5px; border-bottom: 1px solid var(--line); padding-bottom: 18px; }
+.article-sources { background: #fdf8ed; border-left: 3px solid var(--brass); padding: 18px 22px; }
+.article-sources a { overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  .public-nav { gap: 12px; }
+  .public-nav a:nth-child(1), .public-nav a:nth-child(3), .public-nav a:nth-child(4) { display: none; }
+  .marketing-hero, .marketing-proof, .marketing-grid, .tool-grid { grid-template-columns: 1fr; }
+  .marketing-hero { padding: 38px 0; gap: 26px; }
+  .calculator-result { grid-template-columns: 1fr; }
+  .calculator-result strong { text-align: left; margin-bottom: 8px; }
+  .calendar-card li { grid-template-columns: 1fr; }
+}

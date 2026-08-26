@@ -80,7 +80,7 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
       const queueResponse = await fetch("/api/seo/opportunities");
       const queuePayload = await queueResponse.json();
       if (queueResponse.ok) setOpportunities(queuePayload.opportunities || []);
-      setMessage(`Imported ${payload.imported} new opportunities from ${payload.scanned} useful Google queries.`);
+      setMessage(`Search data refreshed: ${payload.imported} new, ${payload.updated} updated, ${payload.scanned} query/page rows scanned.`);
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -221,7 +221,7 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
           <p className="eyebrow">Google Search Console</p>
           <h2>{searchConsole ? "Connected — read-only" : "Connect performance data"}</h2>
           <p>{searchConsole
-            ? `Using ${searchConsole.selected_property || "your selected property"}. The next step imports queries, impressions, clicks and rankings into this queue.`
+            ? `Using ${searchConsole.selected_property || "your selected property"}. Query and page metrics refresh automatically every Monday${searchConsole.last_imported_at ? `; last refreshed ${new Date(searchConsole.last_imported_at).toLocaleString("en-GB")}` : ""}.`
             : "Connect the Google account that owns RentClock to discover real searches, pages close to page one and content gaps."}</p>
         </div>
         <div className="search-console-actions">
@@ -306,6 +306,7 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
                 <div className="seo-item-main">
                   <h3>{item.title}</h3>
                   <p><code>{item.primary_keyword}</code> · {item.search_intent} · {item.page_type}</p>
+                  {item.search_metrics && <p className="seo-metrics">{Number(item.search_metrics.impressions || 0).toLocaleString("en-GB")} impressions · {Number(item.search_metrics.clicks || 0).toLocaleString("en-GB")} clicks · position {Number(item.search_metrics.position || 0).toFixed(1)} · {(Number(item.search_metrics.ctr || 0) * 100).toFixed(1)}% CTR</p>}
                   {item.notes && <p className="seo-notes">{item.notes}</p>}
                 </div>
                 <div className="seo-item-actions">

@@ -46,6 +46,7 @@ export default function Landing() {
         <nav className="nav home-v2-nav" aria-label="Main navigation">
           <a href="#why-rentclock">Why RentClock</a>
           <a href="#how-it-works">How it works</a>
+          <Link href="/tools">Free tools</Link>
           <Link href="/guides">Guides</Link>
           <Link href="/pricing">Pricing</Link>
           <Link href="/login">Sign in</Link>
@@ -57,7 +58,7 @@ export default function Landing() {
         <section className="home-v2-hero">
           <div>
             <p className="eyebrow">For landlords with 1–10 properties · England</p>
-            <h1>Know what&rsquo;s due.<br />Before it becomes expensive.</h1>
+            <h1>Landlord compliance deadlines.<br />Know what&rsquo;s due before it becomes expensive.</h1>
             <p className="home-v2-lead">RentClock puts core gas safety, EICR, EPC, deposit and selected Renters&rsquo; Rights deadlines in one simple ledger — then emails you before tracked dates lapse.</p>
             <div className="home-v2-hero-actions">
               <Link href="/login" className="btn brass">Start your 14-day free trial</Link>
@@ -139,7 +140,7 @@ export default function Landing() {
       <footer className="foot home-v2-foot">
         <p>RentClock is a deadline ledger, not legal advice. Made in the UK.</p>
         <nav className="foot-links" aria-label="Legal">
-          <Link href="/guides">Guides</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/contact">Contact</Link>
+          <Link href="/landlord-compliance-software">Software</Link><Link href="/tools">Tools</Link><Link href="/guides">Guides</Link><Link href="/about">About</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/contact">Contact</Link>
         </nav>
       </footer>
     </div>

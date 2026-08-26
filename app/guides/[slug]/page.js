@@ -2,9 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GUIDES } from "@/lib/guides";
 import { getPublishedGuides } from "@/lib/published-guides";
+import { cache } from "react";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com";
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   return GUIDES.map((guide) => ({ slug: guide.slug }));
@@ -25,7 +27,7 @@ function normaliseGuide(guide) {
   };
 }
 
-async function getGuideCatalog() {
+const getGuideCatalog = cache(async function getGuideCatalog() {
   const published = await getPublishedGuides();
   const seen = new Set();
   return [...GUIDES, ...published]
@@ -35,7 +37,7 @@ async function getGuideCatalog() {
       seen.add(guide.slug);
       return true;
     });
-}
+});
 
 async function findGuide(slug) {
   const catalog = await getGuideCatalog();
@@ -119,6 +121,7 @@ export default async function GuidePage({ params }) {
         <div className="eyebrow"><Link href="/guides" className="crumb">Guides</Link> · {guide.readMins} min read</div>
         <h1 className="article-h1">{guide.title}</h1>
         <p className="article-intro">{guide.intro}</p>
+        <p className="article-byline">Reviewed by the RentClock editorial team · Updated <time dateTime={String(guide.updated).slice(0, 10)}>{new Date(guide.updated).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</time></p>
 
         {guide.sections.map((section, index) => (
           <section key={index} className="article-section">
@@ -131,6 +134,30 @@ export default async function GuidePage({ params }) {
           <h2>Frequently asked questions</h2>
           {guide.faqs.map((faq, index) => <div key={index} className="faq-item"><b>{faq.question}</b><p>{faq.answer}</p></div>)}
         </section>}
+
+        {(guide.sources?.length > 0 || guide.sourcesToVerify?.length > 0) && (
+          <section className="article-section article-sources" aria-labelledby="official-sources">
+            <h2 id="official-sources">Official sources</h2>
+            <ul>
+              {(guide.sources || guide.sourcesToVerify).map((source, index) => {
+                const href = typeof source === "string" ? source : source.url;
+                const label = typeof source === "string" ? new URL(source).hostname.replace(/^www\./, "") : source.label;
+                return <li key={index}><a href={href} rel="noreferrer">{label}</a></li>;
+              })}
+            </ul>
+          </section>
+        )}
+
+        {guide.internalLinks?.length > 0 && (
+          <section className="article-section" aria-labelledby="further-reading">
+            <h2 id="further-reading">Further reading</h2>
+            <ul>{guide.internalLinks.map((item, index) => {
+              const href = typeof item === "string" ? item : item.url || item.href;
+              const label = typeof item === "string" ? item.replace(/^\/guides\//, "").replaceAll("-", " ") : item.label || item.title;
+              return href?.startsWith("/") ? <li key={index}><Link href={href}>{label}</Link></li> : null;
+            })}</ul>
+          </section>
+        )}
 
         {relatedGuides.length > 0 && (
           <section className="article-section" aria-labelledby="related-guides">
@@ -150,7 +177,7 @@ export default async function GuidePage({ params }) {
           <p>Add your properties and RentClock builds the checklist, counts down every renewal, and emails you before anything lapses.</p>
           <Link href="/login" className="btn brass">Start your free trial</Link>
         </aside>
-        <p className="article-disclaimer">This guide is general information, not legal advice. Always check GOV.UK or a professional for your specific situation.</p>
+        <p className="article-disclaimer">This guide is general information, not legal advice. We review time-sensitive claims against official sources; see our <Link href="/about">editorial policy</Link>. Always check GOV.UK or a professional for your situation.</p>
       </article>
 
       <footer className="foot"><p>RentClock is a deadline ledger, not legal advice. Made in the UK.</p></footer>

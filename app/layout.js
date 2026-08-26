@@ -13,15 +13,6 @@ export const metadata = {
   },
   description:
     "Track gas safety, EICR, EPC and Renters' Rights Act deadlines across your properties. Never miss a renewal, never risk a fine. £5.99/month, unlimited properties.",
-  keywords: [
-    "landlord compliance",
-    "gas safety certificate reminder",
-    "EICR renewal",
-    "EPC landlord",
-    "Renters Rights Act",
-    "landlord software UK",
-    "compliance deadline tracker",
-  ],
   authors: [{ name: "RentClock" }],
   alternates: { canonical: "/" },
   openGraph: {
@@ -55,9 +46,24 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const organisationLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "RentClock",
+    url: SITE,
+    logo: `${SITE}/opengraph-image`,
+  };
+  const websiteLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "RentClock",
+    url: SITE,
+  };
   return (
     <html lang="en-GB">
       <body>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organisationLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }} />
         {children}
         <Suspense fallback={null}>
           <MarketingAttribution />

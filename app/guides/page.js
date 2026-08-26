@@ -2,7 +2,7 @@ import Link from "next/link";
 import { GUIDES } from "@/lib/guides";
 import { getPublishedGuides } from "@/lib/published-guides";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export const metadata = {
   title: "Landlord Compliance Guides",

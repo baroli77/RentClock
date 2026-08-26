@@ -21,6 +21,15 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/guides/landlord-registration-explained",
+        destination: "/guides/prs-database-registration",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

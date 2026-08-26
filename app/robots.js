@@ -6,7 +6,8 @@ export default function robots() {
       userAgent: "*",
       allow: "/",
       // Keep private/app areas out of the index
-      disallow: ["/dashboard", "/seo", "/growth", "/api/", "/login"],
+      // Login carries its own noindex directive. Let crawlers read that directive.
+      disallow: ["/dashboard", "/seo", "/growth", "/api/"],
     },
     sitemap: `${SITE}/sitemap.xml`,
   };
