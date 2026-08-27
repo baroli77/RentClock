@@ -30,6 +30,29 @@ test("homepage and shared footer link every commercial page", async () => {
   }
 });
 
+test("public SEO metadata cannot inherit the homepage URL or social copy", async () => {
+  const [layout, config, header, feature] = await Promise.all([
+    readFile(new URL("../app/layout.js", import.meta.url), "utf8"),
+    readFile(new URL("../next.config.js", import.meta.url), "utf8"),
+    readFile(new URL("../components/PublicHeader.jsx", import.meta.url), "utf8"),
+    readFile(new URL("../components/FeatureLanding.jsx", import.meta.url), "utf8"),
+  ]);
+  assert.doesNotMatch(layout, /alternates:\s*\{\s*canonical:\s*"\/"\s*\}/);
+  assert.match(config, /va\.vercel-scripts\.com/);
+  assert.match(config, /vitals\.vercel-insights\.com/);
+  assert.match(header, /login\?trial=1/);
+  assert.match(header, /public-menu-button/);
+  assert.match(feature, /Breadcrumbs/);
+  assert.doesNotMatch(feature, /"@type": "SoftwareApplication"/);
+});
+
+test("guides use explicit editorial links instead of title-word guessing", async () => {
+  const guidePage = await readFile(new URL("../app/guides/[slug]/page.js", import.meta.url), "utf8");
+  assert.match(guidePage, /Breadcrumbs/);
+  assert.match(guidePage, /Further reading/);
+  assert.doesNotMatch(guidePage, /function getRelatedGuides/);
+});
+
 test("guide cluster has unique slugs and valid internal routes", () => {
   assert.ok(GUIDES.length >= 16, "guide cluster has shrunk below 16 static guides");
   const slugs = GUIDES.map((guide) => guide.slug);

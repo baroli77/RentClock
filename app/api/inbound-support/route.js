@@ -4,7 +4,7 @@ import { Resend } from "resend";
 export const runtime = "nodejs";
 
 const SUPPORT_ADDRESS = "support@rentclock.com";
-const FORWARD_TO = "obarton77@gmail.com";
+const FORWARD_TO = process.env.OWNER_NOTIFICATION_EMAIL;
 const WEBHOOK_TOLERANCE_SECONDS = 10 * 60;
 const RESEND_API_URL = "https://api.resend.com";
 
@@ -89,7 +89,7 @@ export async function POST(request) {
   const webhookSecret = process.env.RESEND_WEBHOOK_SECRET?.trim();
   const apiKey = process.env.RESEND_API_KEY?.trim();
 
-  if (!webhookSecret || !apiKey) {
+  if (!webhookSecret || !apiKey || !FORWARD_TO) {
     return Response.json({ error: "Inbound support email is not configured." }, { status: 503 });
   }
 
