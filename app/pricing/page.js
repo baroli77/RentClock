@@ -1,5 +1,5 @@
 import Link from "next/link";
-import PublicHeader from "@/components/PublicHeader";
+import PublicChrome from "@/components/PublicChrome";
 import { pageMetadata } from "@/lib/site";
 
 export const metadata = pageMetadata({ title: "Pricing — £5.99/month, unlimited properties", description: "One simple plan for small landlords: compliance deadlines, email reminders and document storage for unlimited properties.", path: "/pricing", eyebrow: "Simple pricing · unlimited properties" });
@@ -17,9 +17,8 @@ export default function Pricing() {
     ],
   };
   return (
-    <div className="app">
+    <PublicChrome>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }} />
-      <PublicHeader />
 
       <section className="card pricing-card">
         <div className="eyebrow">One plan, no nonsense</div>
@@ -49,15 +48,6 @@ export default function Pricing() {
           your ledger is kept if you return.
         </p>
       </section>
-
-      <footer className="foot">
-        <p>RentClock is a deadline ledger, not legal advice.</p>
-        <nav className="foot-links" aria-label="Legal">
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/terms">Terms</Link>
-          <Link href="/contact">Contact</Link>
-        </nav>
-      </footer>
-    </div>
+    </PublicChrome>
   );
 }

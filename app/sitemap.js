@@ -1,6 +1,7 @@
 import { GUIDES } from "@/lib/guides";
 import { getPublishedGuides } from "@/lib/published-guides";
 import { TOOLS } from "@/lib/tools";
+import { enhanceGuide } from "@/lib/guide-enhancements";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com";
 export const revalidate = 3600;
@@ -14,16 +15,19 @@ export default async function sitemap() {
     { url: `${SITE}/guides`, lastModified, changeFrequency: "weekly", priority: 0.7 },
     { url: `${SITE}/tools`, lastModified, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE}/about`, lastModified, changeFrequency: "yearly", priority: 0.4 },
+    { url: `${SITE}/privacy`, lastModified, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE}/terms`, lastModified, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE}/contact`, lastModified, changeFrequency: "yearly", priority: 0.3 },
     ...["landlord-compliance-software", "gas-safety-certificate-reminders", "eicr-reminders", "landlord-document-storage"].map((slug) => ({ url: `${SITE}/${slug}`, lastModified, changeFrequency: "monthly", priority: 0.8 })),
     ...Object.keys(TOOLS).map((slug) => ({ url: `${SITE}/tools/${slug}`, lastModified, changeFrequency: "monthly", priority: 0.7 })),
   ];
-  const staticGuides = GUIDES.map((guide) => ({
+  const staticGuides = GUIDES.map(enhanceGuide).map((guide) => ({
     url: `${SITE}/guides/${guide.slug}`,
     lastModified: guide.updated,
     changeFrequency: "monthly",
     priority: 0.6,
   }));
-  const publishedGuides = (await getPublishedGuides()).map((guide) => ({
+  const publishedGuides = (await getPublishedGuides()).map(enhanceGuide).map((guide) => ({
     url: `${SITE}/guides/${guide.slug}`,
     lastModified: guide.updated,
     changeFrequency: "monthly",

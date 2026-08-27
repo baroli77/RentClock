@@ -3,6 +3,7 @@ import { GUIDES } from "@/lib/guides";
 import { getPublishedGuides } from "@/lib/published-guides";
 import PublicChrome from "@/components/PublicChrome";
 import { pageMetadata } from "@/lib/site";
+import { enhanceGuide } from "@/lib/guide-enhancements";
 
 export const revalidate = 3600;
 
@@ -17,15 +18,14 @@ const GROUPS = [
 
 export default async function GuidesIndex() {
   const published = await getPublishedGuides();
-  const guides = [
-    ...GUIDES,
-    ...published.map((guide) => ({
-      slug: guide.slug,
-      title: guide.title,
-      description: guide.description,
-      readMins: guide.readMins,
-    })),
-  ];
+  const seen = new Set();
+  const guides = [...GUIDES, ...published]
+    .map(enhanceGuide)
+    .filter((guide) => {
+      if (!guide?.slug || seen.has(guide.slug)) return false;
+      seen.add(guide.slug);
+      return true;
+    });
   const used = new Set(GROUPS.flatMap(([, slugs]) => slugs));
   const grouped = GROUPS.map(([title, slugs]) => [title, slugs.map((slug) => guides.find((guide) => guide.slug === slug)).filter(Boolean)]);
   const uncategorised = guides.filter((guide) => !used.has(guide.slug));
@@ -33,7 +33,6 @@ export default async function GuidesIndex() {
 
   return (
     <PublicChrome>
-
       <section className="guide-head">
         <div className="eyebrow">Guides</div>
         <h1 className="landing-h1 dark">Landlord compliance, explained</h1>
@@ -64,7 +63,6 @@ export default async function GuidesIndex() {
         </p>
         <Link href="/login?trial=1" className="btn brass">Start your free trial</Link>
       </section>
-
     </PublicChrome>
   );
 }
