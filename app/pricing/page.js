@@ -1,6 +1,6 @@
 import Link from "next/link";
 import PublicChrome from "@/components/PublicChrome";
-import { pageMetadata } from "@/lib/site";
+import { pageMetadata, SITE } from "@/lib/site";
 
 export const metadata = pageMetadata({ title: "Pricing — £5.99/month, unlimited properties", description: "One simple plan for small landlords: compliance deadlines, email reminders and document storage for unlimited properties.", path: "/pricing", eyebrow: "Simple pricing · unlimited properties" });
 
@@ -12,8 +12,30 @@ export default function Pricing() {
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     offers: [
-      { "@type": "Offer", price: "5.99", priceCurrency: "GBP", billingDuration: "P1M", url: "https://rentclock.com/pricing" },
-      { "@type": "Offer", price: "59.90", priceCurrency: "GBP", billingDuration: "P1Y", url: "https://rentclock.com/pricing" },
+      {
+        "@type": "Offer",
+        url: `${SITE}/pricing`,
+        availability: "https://schema.org/InStock",
+        priceSpecification: {
+          "@type": "UnitPriceSpecification",
+          price: "5.99",
+          priceCurrency: "GBP",
+          billingDuration: "P1M",
+          unitCode: "MON",
+        },
+      },
+      {
+        "@type": "Offer",
+        url: `${SITE}/pricing`,
+        availability: "https://schema.org/InStock",
+        priceSpecification: {
+          "@type": "UnitPriceSpecification",
+          price: "59.90",
+          priceCurrency: "GBP",
+          billingDuration: "P1Y",
+          unitCode: "ANN",
+        },
+      },
     ],
   };
   return (
