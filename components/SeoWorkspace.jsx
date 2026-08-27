@@ -19,6 +19,12 @@ function hasUnpublishedChanges(item) {
   );
 }
 
+function sourceText(source) {
+  if (typeof source === "string") return source;
+  if (source && typeof source === "object") return source.label || source.url || JSON.stringify(source);
+  return String(source || "");
+}
+
 export default function SeoWorkspace({ initialOpportunities, searchConsole, initialIndexStatuses }) {
   const [opportunities, setOpportunities] = useState(initialOpportunities);
   const [form, setForm] = useState(blank);
@@ -399,7 +405,7 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole, init
                       </section>}
                       <section className="seo-source-list">
                         <h4>Sources to verify</h4>
-                        <ul>{(item.draft.sourcesToVerify || []).map((source, index) => <li key={index}>{source}</li>)}</ul>
+                        <ul>{(item.draft.sourcesToVerify || []).map((source, index) => <li key={index}>{sourceText(source)}</li>)}</ul>
                       </section>
                     </details>
                   </div>
