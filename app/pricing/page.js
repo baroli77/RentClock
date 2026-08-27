@@ -2,7 +2,7 @@ import Link from "next/link";
 import PublicHeader from "@/components/PublicHeader";
 import { pageMetadata } from "@/lib/site";
 
-export const metadata = pageMetadata({ title: "RentClock pricing — £5.99/month, unlimited properties", description: "One simple plan for small landlords: compliance deadlines, email reminders and document storage for unlimited properties.", path: "/pricing", eyebrow: "Simple pricing · unlimited properties" });
+export const metadata = pageMetadata({ title: "Pricing — £5.99/month, unlimited properties", description: "One simple plan for small landlords: compliance deadlines, email reminders and document storage for unlimited properties.", path: "/pricing", eyebrow: "Simple pricing · unlimited properties" });
 
 export default function Pricing() {
   const productLd = {

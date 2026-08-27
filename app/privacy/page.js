@@ -1,5 +1,4 @@
-import Link from "next/link";
-import PublicHeader from "@/components/PublicHeader";
+import PublicChrome from "@/components/PublicChrome";
 
 export const metadata = {
   title: "Privacy Policy",
@@ -10,8 +9,7 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="app">
-      <PublicHeader />
+    <PublicChrome>
       <main className="legal-page">
         <div className="eyebrow">Legal</div>
         <h1>Privacy Policy</h1>
@@ -40,11 +38,6 @@ export default function PrivacyPage() {
         <h2>Changes to this policy</h2>
         <p>We may update this policy when the service or applicable law changes. The latest version will always be published on this page.</p>
       </main>
-      <Footer />
-    </div>
+    </PublicChrome>
   );
-}
-
-function Footer() {
-  return <footer className="foot"><p>RentClock is a deadline ledger, not legal advice.</p><nav className="foot-links"><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/contact">Contact</Link></nav></footer>;
 }

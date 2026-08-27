@@ -4,7 +4,7 @@ export default function robots() {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/api/og"],
+      allow: "/",
       // Keep private/app areas out of the index
       // Login carries its own noindex directive. Let crawlers read that directive.
       disallow: ["/dashboard", "/seo", "/growth", "/api/"],

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import PublicHeader from "@/components/PublicHeader";
+import PublicChrome from "@/components/PublicChrome";
 
 export const metadata = {
   title: "Contact",
@@ -10,8 +10,7 @@ export const metadata = {
 
 export default function ContactPage() {
   return (
-    <div className="app">
-      <PublicHeader />
+    <PublicChrome>
       <main className="legal-page contact-page">
         <div className="eyebrow">Contact</div>
         <h1>How can we help?</h1>
@@ -19,11 +18,6 @@ export default function ContactPage() {
         <p>To help us respond quickly, please include the email address linked to your RentClock account and a short description of the issue.</p>
         <p>For a question about personal information, please see the <Link href="/privacy">Privacy Policy</Link>.</p>
       </main>
-      <Footer />
-    </div>
+    </PublicChrome>
   );
-}
-
-function Footer() {
-  return <footer className="foot"><p>RentClock is a deadline ledger, not legal advice.</p><nav className="foot-links"><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/contact">Contact</Link></nav></footer>;
 }

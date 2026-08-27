@@ -87,9 +87,8 @@ export async function POST(request) {
           .maybeSingle();
         if (claimError) throw claimError;
 
-        if (claimed) {
+        if (claimed && process.env.OWNER_NOTIFICATION_EMAIL?.trim()) {
           const owner = process.env.OWNER_NOTIFICATION_EMAIL?.trim();
-          if (!owner) throw new Error("OWNER_NOTIFICATION_EMAIL is not configured.");
           const from = process.env.REMINDER_FROM || "RentClock <onboarding@resend.dev>";
           const interval = sub.items.data[0]?.price?.recurring?.interval;
           const plan = interval === "year" ? "Annual (£59.90/year)" : "Monthly (£5.99/month)";
@@ -113,7 +112,7 @@ export async function POST(request) {
               .from("profiles")
               .update({ owner_notification_sent_at: null })
               .eq("id", claimed.id);
-            throw emailError;
+            console.error("Could not send owner notification", emailError);
           }
         }
       }
