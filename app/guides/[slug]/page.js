@@ -19,10 +19,11 @@ const CLUSTERS = [
   { guides: ["gas-safety-certificate-renewal-rules", "gas-safety-record-copy-to-tenants", "landlord-compliance-checklist-2026"], tool: "/tools/gas-safety-renewal-calculator", feature: "/gas-safety-certificate-reminders" },
   { guides: ["eicr-landlord-remedial-deadlines", "eicr-copy-deadlines-landlords", "landlord-compliance-documents-checklist"], tool: "/tools/eicr-next-inspection-calculator", feature: "/eicr-reminders" },
   { guides: ["tenancy-deposit-protection-30-day-deadline", "landlord-compliance-documents-checklist", "landlord-compliance-checklist-2026"], tool: "/tools/deposit-protection-deadline-calculator", feature: "/landlord-compliance-software" },
-  { guides: ["how-to-carry-out-uk-right-to-rent-checks", "tenant-pet-request-landlord-28-days", "section-8-notice-landlords-2026"], tool: "/tools/right-to-rent-follow-up-calculator", feature: "/landlord-compliance-software" },
+  { guides: ["section-8-notice-landlords-2026", "renters-rights-act-2026-landlord-timeline", "tenancy-deposit-protection-30-day-deadline"], tool: "/tools/landlord-compliance-calendar-2026", feature: "/landlord-compliance-software" },
+  { guides: ["how-to-carry-out-uk-right-to-rent-checks", "tenant-pet-request-landlord-28-days"], tool: "/tools/right-to-rent-follow-up-calculator", feature: "/landlord-compliance-software" },
   { guides: ["epc-rules-landlords-2030", "epc-exemptions-landlords", "landlord-compliance-documents-checklist"], tool: "/tools/landlord-compliance-calendar-2026", feature: "/landlord-document-storage" },
   { guides: ["smoke-carbon-monoxide-alarm-rules-landlords", "landlord-compliance-checklist-2026", "landlord-compliance-documents-checklist"], tool: "/tools/landlord-compliance-calendar-2026", feature: "/landlord-compliance-software" },
-  { guides: ["renters-rights-act-2026-landlord-timeline", "landlord-rent-increase-rules-2026", "rent-bidding-ban-landlords-2026", "tenant-pet-request-landlord-28-days", "section-8-notice-landlords-2026"], tool: "/tools/landlord-compliance-calendar-2026", feature: "/landlord-compliance-software" },
+  { guides: ["renters-rights-act-2026-landlord-timeline", "landlord-rent-increase-rules-2026", "rent-bidding-ban-landlords-2026", "tenant-pet-request-landlord-28-days"], tool: "/tools/landlord-compliance-calendar-2026", feature: "/landlord-compliance-software" },
 ];
 
 const CALCULATOR_TYPES = {
