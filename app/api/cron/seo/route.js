@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { syncSearchConsole } from "@/lib/search-console-sync";
+import { inspectSearchConsoleIndexing } from "@/lib/search-console-indexing";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,13 @@ export async function GET(request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   const results = [];
   for (const connection of connections || []) {
-    try { results.push({ owner: connection.owner_email, ok: true, ...(await syncSearchConsole(admin, connection)) }); }
+    try {
+      const [performance, indexing] = await Promise.all([
+        syncSearchConsole(admin, connection),
+        inspectSearchConsoleIndexing(admin, connection),
+      ]);
+      results.push({ owner: connection.owner_email, ok: true, ...performance, indexing });
+    }
     catch (syncError) { console.error(`Search Console sync failed for ${connection.owner_email}:`, syncError.message); results.push({ owner: connection.owner_email, ok: false, error: syncError.message }); }
   }
   const failures = results.filter((result) => !result.ok).length;

@@ -19,7 +19,7 @@ function hasUnpublishedChanges(item) {
   );
 }
 
-export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
+export default function SeoWorkspace({ initialOpportunities, searchConsole, initialIndexStatuses }) {
   const [opportunities, setOpportunities] = useState(initialOpportunities);
   const [form, setForm] = useState(blank);
   const [saving, setSaving] = useState(false);
@@ -33,6 +33,7 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
   const [editingId, setEditingId] = useState(null);
   const [draftText, setDraftText] = useState("");
   const [savingDraft, setSavingDraft] = useState(false);
+  const [indexStatuses] = useState(initialIndexStatuses);
 
   const stats = useMemo(
     () => ({
@@ -80,7 +81,8 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
       const queueResponse = await fetch("/api/seo/opportunities");
       const queuePayload = await queueResponse.json();
       if (queueResponse.ok) setOpportunities(queuePayload.opportunities || []);
-      setMessage(`Search data refreshed: ${payload.imported} new, ${payload.updated} updated, ${payload.scanned} query/page rows scanned.`);
+      if (payload.indexing) window.location.reload();
+      setMessage(`Google refreshed: ${payload.scanned} query/page rows and ${payload.indexing?.total || 0} sitemap URLs inspected.`);
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -215,6 +217,29 @@ export default function SeoWorkspace({ initialOpportunities, searchConsole }) {
           <span><b>{stats.ready}</b> ready to review</span>
         </div>
       </section>
+
+      {searchConsole && (
+        <section className="card index-status-card">
+          <div className="index-status-head">
+            <div><p className="eyebrow">Google index coverage</p><h2>What Google has actually indexed</h2></div>
+            <span>{indexStatuses.length ? `${indexStatuses.filter((item) => item.verdict === "PASS").length}/${indexStatuses.length} indexed` : "Awaiting first inspection"}</span>
+          </div>
+          {indexStatuses.length === 0 ? (
+            <p className="muted">No URL Inspection data has been collected yet. Press “Import Google queries” to inspect every page in the sitemap as well.</p>
+          ) : (
+            <div className="index-status-list">
+              {indexStatuses.map((item) => (
+                <div className="index-status-row" key={item.url}>
+                  <span className={`seo-status ${item.verdict === "PASS" ? "ready" : "drafting"}`}>{item.verdict === "PASS" ? "indexed" : "not indexed"}</span>
+                  <a href={item.url} target="_blank" rel="noreferrer">{new URL(item.url).pathname}</a>
+                  <span>{item.inspection_error || item.coverage_state || "Google returned no coverage reason"}</span>
+                  <time>{item.last_crawl_time ? `Crawled ${new Date(item.last_crawl_time).toLocaleDateString("en-GB")}` : "No crawl recorded"}</time>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="card search-console-card">
         <div>

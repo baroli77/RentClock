@@ -33,5 +33,12 @@ export default async function SeoPage() {
     .maybeSingle();
   if (searchConsoleError) throw new Error(`Could not load Search Console connection: ${searchConsoleError.message}`);
 
-  return <SeoWorkspace initialOpportunities={opportunities || []} searchConsole={searchConsole} />;
+  const { data: indexStatuses, error: indexStatusError } = await admin
+    .from("seo_index_status")
+    .select("url, verdict, coverage_state, robots_txt_state, indexing_state, page_fetch_state, last_crawl_time, inspected_at, inspection_error")
+    .eq("owner_email", user.email.toLowerCase())
+    .order("url");
+  if (indexStatusError) throw new Error(`Could not load Google index status: ${indexStatusError.message}`);
+
+  return <SeoWorkspace initialOpportunities={opportunities || []} searchConsole={searchConsole} initialIndexStatuses={indexStatuses || []} />;
 }
