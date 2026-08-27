@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./guide-extras.css";
 import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import MarketingAttribution from "@/components/MarketingAttribution";

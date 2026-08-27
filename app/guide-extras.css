@@ -1,0 +1,13 @@
+.status-board { margin: 0 0 28px; padding: 22px; }
+.status-board h2 { margin: 0 0 8px; }
+.status-asof, .status-note { color: var(--grey); font-size: 14px; }
+.status-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+.status-item { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; background: var(--grey-bg); }
+.status-item dt { font: 600 12px var(--font-plex-mono), monospace; letter-spacing: .04em; text-transform: uppercase; color: var(--grey); margin-bottom: 6px; }
+.status-item dd { margin: 0; font-weight: 600; }
+.status-item.is-closed { background: var(--green-bg); }
+.status-item.is-unknown { background: var(--amber-bg); }
+.article-steps { margin: 12px 0 0; padding-left: 22px; }
+.article-steps li { margin: 0 0 10px; }
+.article-calculator { margin: 22px 0 0; padding: 18px; }
+@media (max-width: 760px) { .status-grid { grid-template-columns: 1fr; } }
