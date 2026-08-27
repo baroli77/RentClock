@@ -1,7 +1,7 @@
 import { GUIDES } from "@/lib/guides";
 import { getPublishedGuides } from "@/lib/published-guides";
 import { TOOLS } from "@/lib/tools";
-import { enhanceGuide } from "@/lib/guide-enhancements";
+import { enhanceGuide } from "@/lib/enhance-guide";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com";
 export const revalidate = 3600;

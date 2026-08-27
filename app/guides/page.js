@@ -3,7 +3,7 @@ import { GUIDES } from "@/lib/guides";
 import { getPublishedGuides } from "@/lib/published-guides";
 import PublicChrome from "@/components/PublicChrome";
 import { pageMetadata } from "@/lib/site";
-import { enhanceGuide } from "@/lib/guide-enhancements";
+import { enhanceGuide } from "@/lib/enhance-guide";
 
 export const revalidate = 3600;
 
