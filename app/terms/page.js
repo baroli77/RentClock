@@ -10,7 +10,7 @@ export const metadata = {
 export default function TermsPage() {
   return (
     <PublicChrome>
-      <main className="legal-page">
+      <section className="legal-page">
         <div className="eyebrow">Legal</div>
         <h1>Terms of Use</h1>
         <p className="legal-updated">Last updated: 13 July 2026</p>
@@ -34,7 +34,7 @@ export default function TermsPage() {
 
         <h2>Contact</h2>
         <p>Questions about these terms can be sent to <a href="mailto:support@rentclock.com">support@rentclock.com</a>.</p>
-      </main>
+      </section>
     </PublicChrome>
   );
 }

@@ -10,7 +10,7 @@ export const metadata = {
 export default function PrivacyPage() {
   return (
     <PublicChrome>
-      <main className="legal-page">
+      <section className="legal-page">
         <div className="eyebrow">Legal</div>
         <h1>Privacy Policy</h1>
         <p className="legal-updated">Last updated: 17 August 2026</p>
@@ -37,7 +37,7 @@ export default function PrivacyPage() {
 
         <h2>Changes to this policy</h2>
         <p>We may update this policy when the service or applicable law changes. The latest version will always be published on this page.</p>
-      </main>
+      </section>
     </PublicChrome>
   );
 }

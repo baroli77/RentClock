@@ -77,7 +77,8 @@ export async function POST(request) {
         });
       }
 
-      if (profile && !profile.owner_notification_sent_at && process.env.RESEND_API_KEY) {
+      const owner = process.env.OWNER_NOTIFICATION_EMAIL?.trim();
+      if (profile && !profile.owner_notification_sent_at && process.env.RESEND_API_KEY && owner) {
         const { data: claimed, error: claimError } = await admin
           .from("profiles")
           .update({ owner_notification_sent_at: new Date().toISOString() })
@@ -87,8 +88,7 @@ export async function POST(request) {
           .maybeSingle();
         if (claimError) throw claimError;
 
-        if (claimed && process.env.OWNER_NOTIFICATION_EMAIL?.trim()) {
-          const owner = process.env.OWNER_NOTIFICATION_EMAIL?.trim();
+        if (claimed) {
           const from = process.env.REMINDER_FROM || "RentClock <onboarding@resend.dev>";
           const interval = sub.items.data[0]?.price?.recurring?.interval;
           const plan = interval === "year" ? "Annual (£59.90/year)" : "Monthly (£5.99/month)";
