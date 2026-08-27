@@ -5,7 +5,7 @@ export const metadata = {
   title: "Contact",
   description: "Contact RentClock for account and support help.",
   alternates: { canonical: "/contact" },
-  robots: { index: false, follow: true },
+  robots: { index: true, follow: true },
 };
 
 export default function ContactPage() {

@@ -36,7 +36,7 @@ export default function RootLayout({ children }) {
     "@type": "Organization",
     name: "RentClock",
     url: SITE,
-    logo: `${SITE}/logo.svg`,
+    logo: `${SITE}/opengraph-image`,
   };
   const websiteLd = {
     "@context": "https://schema.org",

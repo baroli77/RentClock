@@ -4,7 +4,7 @@ export const metadata = {
   title: "Privacy Policy",
   description: "How RentClock collects, uses and protects personal information.",
   alternates: { canonical: "/privacy" },
-  robots: { index: false, follow: true },
+  robots: { index: true, follow: true },
 };
 
 export default function PrivacyPage() {

@@ -4,7 +4,7 @@ export const metadata = {
   title: "Terms of Use",
   description: "The terms that apply when you use RentClock.",
   alternates: { canonical: "/terms" },
-  robots: { index: false, follow: true },
+  robots: { index: true, follow: true },
 };
 
 export default function TermsPage() {
