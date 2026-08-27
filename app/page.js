@@ -113,6 +113,17 @@ export default function Landing() {
           </div>
         </section>
 
+        <section className="home-feature-links" aria-labelledby="rentclock-features">
+          <p className="eyebrow">Explore the software</p>
+          <h2 id="rentclock-features">The useful bits, without the property-suite bloat.</h2>
+          <div className="home-v2-steps">
+            <Link href="/landlord-compliance-software" className="home-v2-step"><h3>Compliance software</h3><span>One portfolio-wide view of tracked obligations and missing records.</span></Link>
+            <Link href="/gas-safety-certificate-reminders" className="home-v2-step"><h3>Gas safety reminders</h3><span>Annual deadlines, the early-check window and persistent overdue alerts.</span></Link>
+            <Link href="/eicr-reminders" className="home-v2-step"><h3>EICR reminders</h3><span>Report-specific inspection dates and electrical evidence per property.</span></Link>
+            <Link href="/landlord-document-storage" className="home-v2-step"><h3>Document storage</h3><span>Certificates kept beside the property and deadline they support.</span></Link>
+          </div>
+        </section>
+
         <section className="home-v2-two-col">
           <div>
             <p className="eyebrow">Built for England</p>
@@ -140,7 +151,7 @@ export default function Landing() {
       <footer className="foot home-v2-foot">
         <p>RentClock is a deadline ledger, not legal advice. Made in the UK.</p>
         <nav className="foot-links" aria-label="Legal">
-          <Link href="/landlord-compliance-software">Software</Link><Link href="/tools">Tools</Link><Link href="/guides">Guides</Link><Link href="/about">About</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/contact">Contact</Link>
+          <Link href="/landlord-compliance-software">Software</Link><Link href="/gas-safety-certificate-reminders">Gas reminders</Link><Link href="/eicr-reminders">EICR reminders</Link><Link href="/landlord-document-storage">Documents</Link><Link href="/tools">Tools</Link><Link href="/guides">Guides</Link><Link href="/about">About</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/contact">Contact</Link>
         </nav>
       </footer>
     </div>

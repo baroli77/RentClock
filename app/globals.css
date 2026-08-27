@@ -618,10 +618,12 @@ input[type="checkbox"] {
 .guide-list { display: grid; gap: 14px; margin-bottom: 8px; }
 .guide-card { display: block; text-decoration: none; color: inherit; transition: border-color .15s; }
 .guide-card:hover { border-color: var(--brass); }
-.guide-card h2 {
+.guide-card h2, .guide-card h3 {
   font-family: 'Bricolage Grotesque', sans-serif;
   font-weight: 600; font-size: 19px; margin: 0 0 6px; color: var(--ink);
 }
+.guide-group { margin: 26px 0 34px; }
+.guide-group > h2 { font: 600 24px 'Bricolage Grotesque', sans-serif; letter-spacing: -.025em; margin: 0 0 13px; }
 .guide-card p { color: var(--grey); font-size: 14px; margin: 0 0 10px; }
 .guide-meta { font-size: 12px; color: var(--brass); font-weight: 600; }
 
@@ -843,6 +845,25 @@ input[type="checkbox"] {
 .marketing-proof .card { padding: 24px; }
 .marketing-proof .card p { margin-top: 12px; }
 .marketing-proof a, .article a, .tool-page a { color: var(--brass); }
+.marketing-copy { max-width: 74ch; margin: 0 auto 54px; }
+.marketing-copy .article-section { margin: 34px 0; }
+.marketing-copy .article-section h2, .marketing-workflow h2, .marketing-faq h2, .marketing-more h2, .home-feature-links > h2 { font: 600 clamp(24px, 4vw, 34px) 'Bricolage Grotesque', sans-serif; letter-spacing: -.035em; line-height: 1.12; }
+.marketing-copy .article-section p { font-size: 16px; line-height: 1.72; }
+.marketing-workflow { padding: 26px; margin: 40px 0; }
+.marketing-workflow ol { margin: 16px 0 0; padding-left: 24px; }
+.marketing-workflow li { padding: 7px 0 7px 6px; }
+.marketing-faq { max-width: 74ch; margin: 54px auto; }
+.marketing-faq details { border-top: 1px solid var(--line); padding: 16px 0; }
+.marketing-faq summary { cursor: pointer; font-weight: 600; font-size: 16px; }
+.marketing-faq details p { color: var(--grey); line-height: 1.65; margin: 10px 0 0; }
+.marketing-more { margin: 50px 0; border-top: 1px solid var(--line); padding-top: 34px; }
+.marketing-more > div { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.marketing-more a { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 15px 18px; color: var(--ink); text-decoration: none; font-weight: 600; }
+.marketing-more a:hover { border-color: var(--brass); color: var(--brass); }
+.home-feature-links { padding: 0 0 56px; }
+.home-feature-links .home-v2-step { color: inherit; text-decoration: none; }
+.home-feature-links .home-v2-step:hover { border-color: var(--brass); }
+.home-feature-links .home-v2-steps { grid-template-columns: repeat(2, 1fr); }
 .tool-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .tool-card { color: inherit; text-decoration: none; padding: 24px; }
 .tool-card:hover { border-color: var(--brass); }
@@ -874,4 +895,5 @@ input[type="checkbox"] {
   .calculator-result { grid-template-columns: 1fr; }
   .calculator-result strong { text-align: left; margin-bottom: 8px; }
   .calendar-card li { grid-template-columns: 1fr; }
+  .marketing-more > div, .home-feature-links .home-v2-steps { grid-template-columns: 1fr; }
 }
