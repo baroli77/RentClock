@@ -1,5 +1,5 @@
 import Link from "next/link";
-import PublicHeader from "@/components/PublicHeader";
+import BrandLogo from "@/components/BrandLogo";
 
 export const metadata = {
   title: "Terms of Use",
@@ -11,7 +11,10 @@ export const metadata = {
 export default function TermsPage() {
   return (
     <div className="app">
-      <PublicHeader />
+      <header className="masthead">
+        <Link href="/" className="brand-link" aria-label="RentClock home"><BrandLogo /></Link>
+        <nav className="nav"><Link href="/guides">Guides</Link><Link href="/pricing">Pricing</Link></nav>
+      </header>
       <main className="legal-page">
         <div className="eyebrow">Legal</div>
         <h1>Terms of Use</h1>

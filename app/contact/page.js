@@ -1,5 +1,5 @@
 import Link from "next/link";
-import PublicHeader from "@/components/PublicHeader";
+import BrandLogo from "@/components/BrandLogo";
 
 export const metadata = {
   title: "Contact",
@@ -11,7 +11,10 @@ export const metadata = {
 export default function ContactPage() {
   return (
     <div className="app">
-      <PublicHeader />
+      <header className="masthead">
+        <Link href="/" className="brand-link" aria-label="RentClock home"><BrandLogo /></Link>
+        <nav className="nav"><Link href="/guides">Guides</Link><Link href="/pricing">Pricing</Link></nav>
+      </header>
       <main className="legal-page contact-page">
         <div className="eyebrow">Contact</div>
         <h1>How can we help?</h1>
