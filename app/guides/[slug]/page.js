@@ -7,6 +7,7 @@ import PublicChrome from "@/components/PublicChrome";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { socialImage } from "@/lib/site";
 import DeadlineTool from "@/components/DeadlineTool";
+import { GUIDE_ENHANCEMENTS } from "@/lib/guide-enhancements";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com";
 export const revalidate = 3600;
@@ -31,19 +32,46 @@ const CALCULATOR_TYPES = {
   "how-to-carry-out-uk-right-to-rent-checks": "rightToRent",
 };
 
+const CALCULATOR_AFTER = {
+  "gas-safety-certificate-renewal-rules": "You can usually arrange the check up to two months early",
+  "eicr-landlord-remedial-deadlines": "Inspection at least every five years — or sooner",
+  "tenancy-deposit-protection-30-day-deadline": "Count from the date the deposit is received",
+  "how-to-carry-out-uk-right-to-rent-checks": "Time-limited follow-up checks",
+};
+
+function insertCalculatorAfter(guide, section, index) {
+  const target = CALCULATOR_AFTER[guide.slug];
+  if (!target) return index === 0;
+  const matchIndex = guide.sections.findIndex((item) => item.heading === target);
+  return index === (matchIndex === -1 ? 0 : matchIndex);
+}
+
+function GuideCalculator({ type }) {
+  return (
+    <aside className="article-calculator card" aria-labelledby="deadline-calculator">
+      <h2 id="deadline-calculator">Calculate the date from the source document</h2>
+      <p>Enter the date on the certificate, report or official check. This is a planning aid, not a decision about whether the rule applies.</p>
+      <DeadlineTool type={type} />
+    </aside>
+  );
+}
+
 export function generateStaticParams() {
   return GUIDES.map((guide) => ({ slug: guide.slug }));
 }
 
 function normaliseGuide(guide) {
   if (!guide) return null;
+  const extra = GUIDE_ENHANCEMENTS[guide.slug] || {};
+  const merged = { ...guide, ...extra };
   return {
-    ...guide,
-    sections: (guide.sections || []).map((section) => ({
+    ...merged,
+    sections: (merged.sections || []).map((section) => ({
       heading: section.h || section.heading,
       paragraphs: section.p || section.paragraphs || section.points || [],
+      steps: section.steps || [],
     })),
-    faqs: (guide.faqs || []).map((faq) => ({
+    faqs: (merged.faqs || []).map((faq) => ({
       question: faq.q || faq.question,
       answer: faq.a || faq.answer,
     })),
@@ -145,18 +173,35 @@ export default async function GuidePage({ params }) {
         <p className="article-intro">{guide.intro}</p>
         <p className="article-byline">Reviewed by Oliver Barton, RentClock operator · Updated <time dateTime={String(guide.updated).slice(0, 10)}>{new Date(guide.updated).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</time></p>
 
+        {guide.statusBoard && (
+          <section className="status-board card" aria-labelledby="current-status">
+            <p className="eyebrow">Status board</p>
+            <h2 id="current-status">{guide.statusBoard.heading || "Current status"}</h2>
+            <p className="status-asof">Checked against official sources on {guide.statusBoard.asAt}.</p>
+            <dl className="status-grid">
+              {guide.statusBoard.items.map((item) => (
+                <div key={item.label} className={`status-item is-${item.state || "unknown"}`}>
+                  <dt>{item.label}</dt>
+                  <dd>{item.value}</dd>
+                </div>
+              ))}
+            </dl>
+            {guide.statusBoard.note && <p className="status-note">{guide.statusBoard.note}</p>}
+          </section>
+        )}
+
         {guide.sections.map((section, index) => (
           <section key={index} className="article-section">
             <h2>{section.heading}</h2>
             {section.paragraphs.map((paragraph, item) => <p key={item}>{paragraph}</p>)}
+            {section.steps?.length > 0 && (
+              <ol className="article-steps">
+                {section.steps.map((step) => <li key={step}>{step}</li>)}
+              </ol>
+            )}
+            {calculatorType && insertCalculatorAfter(guide, section, index) && <GuideCalculator type={calculatorType} />}
           </section>
         ))}
-
-        {calculatorType && <section className="article-section" aria-labelledby="deadline-calculator">
-          <h2 id="deadline-calculator">Calculate the relevant deadline</h2>
-          <p>Use this planning tool with the date on the source document. It does not replace the official guidance or a property-specific assessment.</p>
-          <DeadlineTool type={calculatorType} />
-        </section>}
 
         {guide.faqs.length > 0 && <section className="article-section">
           <h2>Frequently asked questions</h2>
