@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { inspectSearchConsoleIndexing } from "@/lib/search-console-indexing";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 const EXPECTED_HASH = "6519da24d39cf884eebc9eb498b3c0073368c429e4bdcb01d82a554882455bcc";
 
