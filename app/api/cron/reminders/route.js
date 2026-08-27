@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { datedItems, missingItems, fmt, toISO, today } from "@/lib/compliance";
-import { hasAccess } from "@/lib/billing";
 import { reminderEmail, missingEmail } from "@/lib/email";
 
 // Daily cron (see vercel.json). Sends dated-deadline reminders every day and,
@@ -10,6 +9,9 @@ import { reminderEmail, missingEmail } from "@/lib/email";
 // Once an item is overdue it remains in the daily email until the user records
 // its renewal date. Compliance is not a one-and-done problem, unfortunately.
 const THRESHOLDS = [60, 30, 14, 7, 0];
+const PROFILE_PAGE_SIZE = 200;
+const POSTGREST_PAGE_SIZE = 1000;
+export const maxDuration = 300;
 
 // A stable stamp for the weekly nag dedup, so each run day is one row.
 // Uses the London calendar date, same as all deadline maths.
@@ -35,6 +37,39 @@ async function releaseClaims(admin, ids) {
   if (error) console.error("Could not release failed reminder claims:", error.message);
 }
 
+async function listEligibleProfiles(admin) {
+  const profiles = [];
+  for (let from = 0; ; from += PROFILE_PAGE_SIZE) {
+    const { data, error } = await admin
+      .from("profiles")
+      .select("id, email, subscription_status")
+      .in("subscription_status", ["active", "trialing"])
+      .range(from, from + PROFILE_PAGE_SIZE - 1);
+    if (error) throw new Error(error.message);
+    profiles.push(...(data || []));
+    if (!data || data.length < PROFILE_PAGE_SIZE) return profiles;
+  }
+}
+
+async function propertiesByUserId(admin, profiles) {
+  const grouped = new Map(profiles.map((profile) => [profile.id, []]));
+  const ids = profiles.map((profile) => profile.id);
+  for (let start = 0; start < ids.length; start += PROFILE_PAGE_SIZE) {
+    const batch = ids.slice(start, start + PROFILE_PAGE_SIZE);
+    for (let from = 0; ; from += POSTGREST_PAGE_SIZE) {
+      const { data, error } = await admin
+        .from("properties")
+        .select("id, user_id, payload")
+        .in("user_id", batch)
+        .range(from, from + POSTGREST_PAGE_SIZE - 1);
+      if (error) throw new Error(error.message);
+      for (const property of data || []) grouped.get(property.user_id)?.push(property);
+      if (!data || data.length < POSTGREST_PAGE_SIZE) break;
+    }
+  }
+  return grouped;
+}
+
 export async function GET(request) {
   // Vercel Cron sends Authorization: Bearer {CRON_SECRET}
   const auth = request.headers.get("authorization");
@@ -50,10 +85,14 @@ export async function GET(request) {
   const admin = createAdminClient();
   const isMonday = today().getDay() === 1; // Monday in the UK, not in UTC
 
-  const { data: profiles, error: pErr } = await admin
-    .from("profiles")
-    .select("id, email, subscription_status");
-  if (pErr) return NextResponse.json({ error: pErr.message }, { status: 500 });
+  let profiles;
+  let properties;
+  try {
+    profiles = await listEligibleProfiles(admin);
+    properties = await propertiesByUserId(admin, profiles);
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
   let sent = 0;
   let nags = 0;
@@ -62,17 +101,8 @@ export async function GET(request) {
   const from = process.env.REMINDER_FROM || "RentClock <support@rentclock.com>";
 
   for (const profile of profiles || []) {
-    if (!profile.email || !hasAccess(profile)) continue;
-
-    const { data: rows, error: rowsError } = await admin
-      .from("properties")
-      .select("id, payload")
-      .eq("user_id", profile.id);
-    if (rowsError) {
-      failures += 1;
-      console.error(`Could not load properties for ${profile.id}:`, rowsError.message);
-      continue;
-    }
+    if (!profile.email) continue;
+    const rows = properties.get(profile.id) || [];
 
     // ---------- 1. Dated deadline reminders (daily) ----------
     const lines = [];

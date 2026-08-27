@@ -4,7 +4,6 @@ import { Resend } from "resend";
 export const runtime = "nodejs";
 
 const SUPPORT_ADDRESS = "support@rentclock.com";
-const FORWARD_TO = "obarton77@gmail.com";
 const WEBHOOK_TOLERANCE_SECONDS = 10 * 60;
 const RESEND_API_URL = "https://api.resend.com";
 
@@ -88,8 +87,9 @@ async function getForwardingAttachments(email, apiKey) {
 export async function POST(request) {
   const webhookSecret = process.env.RESEND_WEBHOOK_SECRET?.trim();
   const apiKey = process.env.RESEND_API_KEY?.trim();
+  const forwardTo = process.env.OWNER_NOTIFICATION_EMAIL?.trim();
 
-  if (!webhookSecret || !apiKey) {
+  if (!webhookSecret || !apiKey || !forwardTo) {
     return Response.json({ error: "Inbound support email is not configured." }, { status: 503 });
   }
 
@@ -143,7 +143,7 @@ export async function POST(request) {
   const resend = new Resend(apiKey);
   const { error: forwardError } = await resend.emails.send({
     from: "RentClock Support <support@rentclock.com>",
-    to: [FORWARD_TO],
+    to: [forwardTo],
     replyTo: receivedEmail.from,
     subject: `Fwd: ${receivedEmail.subject || "(no subject)"}`,
     html: receivedEmail.html || plainTextFallback(receivedEmail.text),

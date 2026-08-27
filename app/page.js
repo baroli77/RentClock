@@ -1,7 +1,9 @@
 import Link from "next/link";
-import BrandLogo from "@/components/BrandLogo";
+import PublicHeader from "@/components/PublicHeader";
+import { pageMetadata } from "@/lib/site";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com";
+export const metadata = pageMetadata({ title: "RentClock — compliance deadlines for small landlords", description: "Track gas safety, EICR, EPC and Renters' Rights Act deadlines across your properties. Never miss a renewal, never risk a fine. £5.99/month, unlimited properties.", path: "/", eyebrow: "For small landlords in England" });
 
 export default function Landing() {
   const softwareLd = {
@@ -41,18 +43,7 @@ export default function Landing() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
-      <header className="masthead home-v2-head">
-        <Link href="/" className="brand-link" aria-label="RentClock home"><BrandLogo /></Link>
-        <nav className="nav home-v2-nav" aria-label="Main navigation">
-          <a href="#why-rentclock">Why RentClock</a>
-          <a href="#how-it-works">How it works</a>
-          <Link href="/tools">Free tools</Link>
-          <Link href="/guides">Guides</Link>
-          <Link href="/pricing">Pricing</Link>
-          <Link href="/login">Sign in</Link>
-          <Link href="/login" className="btn primary sm">Start free trial</Link>
-        </nav>
-      </header>
+      <PublicHeader home />
 
       <main>
         <section className="home-v2-hero">
@@ -61,7 +52,7 @@ export default function Landing() {
             <h1>Landlord compliance deadlines.<br />Know what&rsquo;s due before it becomes expensive.</h1>
             <p className="home-v2-lead">RentClock puts core gas safety, EICR, EPC, deposit and selected Renters&rsquo; Rights deadlines in one simple ledger — then emails you before tracked dates lapse.</p>
             <div className="home-v2-hero-actions">
-              <Link href="/login" className="btn brass">Start your 14-day free trial</Link>
+              <Link href="/login?trial=1" className="btn brass">Start your 14-day free trial</Link>
               <Link href="/login" className="home-v2-sign-in">Already have an account? Sign in</Link>
             </div>
             <p className="home-v2-stakes">Up to £40,000 at stake for some landlord offences.</p>
@@ -142,7 +133,7 @@ export default function Landing() {
           <h2>Spend ten minutes now.<br />Avoid a very expensive reminder later.</h2>
           <p>14-day free trial · card required · cancel before day 14 to pay nothing</p>
           <div className="home-v2-hero-actions">
-            <Link href="/login" className="btn brass">Start your free trial</Link>
+            <Link href="/login?trial=1" className="btn brass">Start your free trial</Link>
             <Link href="/login" className="home-v2-sign-in">Already have an account? Sign in</Link>
           </div>
         </section>

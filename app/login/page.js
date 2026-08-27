@@ -1,11 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import BrandLogo from "@/components/BrandLogo";
+import { useSearchParams } from "next/navigation";
+import PublicHeader from "@/components/PublicHeader";
 import { createClient } from "@/lib/supabase/client";
 
-export default function Login() {
+export default function LoginPage() {
+  return <Suspense fallback={null}><Login /></Suspense>;
+}
+
+function Login() {
+  const isTrial = useSearchParams().get("trial") === "1";
   const [email, setEmail] = useState("");
   const [state, setState] = useState("idle"); // idle | sending | sent | error
   const [message, setMessage] = useState("");
@@ -38,16 +44,10 @@ export default function Login() {
 
   return (
     <div className="app">
-      <header className="masthead">
-        <div className="brand">
-          <Link href="/" className="brand-link" aria-label="RentClock home">
-            <BrandLogo />
-          </Link>
-        </div>
-      </header>
+      <PublicHeader />
 
       <section className="card login-card">
-        <div className="eyebrow">Sign in</div>
+        <div className="eyebrow">{isTrial ? "Start your free trial" : "Sign in"}</div>
         {state === "sent" ? (
           <>
             <h2>Check your email</h2>
@@ -58,8 +58,8 @@ export default function Login() {
           </>
         ) : (
           <>
-            <h1>Sign in with a magic link</h1>
-            <p>Enter your email and we&rsquo;ll send you a one-click sign-in link.</p>
+            <h1>{isTrial ? "Start your 14-day free trial" : "Sign in with a magic link"}</h1>
+            <p>{isTrial ? "Enter your email to create your RentClock account and continue to secure checkout. You will not be charged today." : "Enter your email and we&rsquo;ll send you a one-click sign-in link."}</p>
             <p className="login-note">
               If it doesn&rsquo;t arrive within a few minutes, please check your spam or junk folder.
             </p>
@@ -74,7 +74,7 @@ export default function Login() {
                 onKeyDown={(e) => e.key === "Enter" && send()}
               />
               <button className="btn primary" onClick={send} disabled={state === "sending"}>
-                {state === "sending" ? "Sending…" : "Send link"}
+                {state === "sending" ? "Sending…" : isTrial ? "Continue" : "Send link"}
               </button>
             </div>
             {message && <p className="login-err">{message}</p>}

@@ -1,40 +1,29 @@
 import Link from "next/link";
-import BrandLogo from "@/components/BrandLogo";
+import PublicHeader from "@/components/PublicHeader";
+import { pageMetadata } from "@/lib/site";
 
-export const metadata = {
-  title: "Pricing — £5.99/month, unlimited properties",
-  description:
-    "RentClock is £5.99/month or £59.90/year for unlimited properties. Core compliance checklist, email reminders, document vault, and a 14-day free trial.",
-  alternates: { canonical: "/pricing" },
-  openGraph: {
-    type: "website",
-    url: "/pricing",
-    title: "RentClock pricing — £5.99/month, unlimited properties",
-    description:
-      "One simple plan for small landlords: compliance deadlines, email reminders and document storage for unlimited properties.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "RentClock pricing — £5.99/month, unlimited properties",
-    description:
-      "Compliance deadlines, email reminders and document storage for unlimited properties.",
-  },
-};
+export const metadata = pageMetadata({ title: "RentClock pricing — £5.99/month, unlimited properties", description: "One simple plan for small landlords: compliance deadlines, email reminders and document storage for unlimited properties.", path: "/pricing", eyebrow: "Simple pricing · unlimited properties" });
 
 export default function Pricing() {
+  const productLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "RentClock",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    offers: [
+      { "@type": "Offer", price: "5.99", priceCurrency: "GBP", billingDuration: "P1M", url: "https://rentclock.com/pricing" },
+      { "@type": "Offer", price: "59.90", priceCurrency: "GBP", billingDuration: "P1Y", url: "https://rentclock.com/pricing" },
+    ],
+  };
   return (
     <div className="app">
-      <header className="masthead">
-        <div className="brand">
-          <Link href="/" className="brand-link" aria-label="RentClock home">
-            <BrandLogo />
-          </Link>
-        </div>
-      </header>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }} />
+      <PublicHeader />
 
       <section className="card pricing-card">
         <div className="eyebrow">One plan, no nonsense</div>
-        <h1 className="sr-only">RentClock pricing</h1>
+        <h1>RentClock pricing</h1>
         <div className="price mono">
           £5.99<span className="per">/month</span>
         </div>
@@ -48,7 +37,7 @@ export default function Pricing() {
           <li>Renters&rsquo; Rights Act updates as phases go live</li>
         </ul>
         <p className="price-fine">Local licensing, repairs and event-based duties can vary. RentClock does not replace council checks or legal advice.</p>
-        <Link href="/login" className="btn brass">
+        <Link href="/login?trial=1" className="btn brass">
           Start 14-day free trial
         </Link>
         <p className="price-fine">

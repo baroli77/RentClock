@@ -7,17 +7,11 @@ const supabaseKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export async function middleware(request) {
-  if (request.headers.get("host") === "www.rentclock.com") {
-    const url = request.nextUrl.clone();
-    url.protocol = "https:";
-    url.host = "rentclock.com";
-    return NextResponse.redirect(url, 308);
-  }
-
   const path = request.nextUrl.pathname;
   const protectedPath =
     path.startsWith("/dashboard") ||
     path.startsWith("/seo") ||
+    path.startsWith("/growth") ||
     path.startsWith("/api/data") ||
     path.startsWith("/api/docs");
 
@@ -81,5 +75,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/dashboard/:path*", "/seo/:path*", "/growth/:path*", "/login", "/api/data/:path*", "/api/docs/:path*"],
 };
