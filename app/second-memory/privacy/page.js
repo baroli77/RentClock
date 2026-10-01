@@ -2,7 +2,7 @@ export const metadata = {
   title: { absolute: "Second Memory Privacy Policy" },
   description: "Privacy policy for the Second Memory Android app.",
   alternates: { canonical: "/second-memory/privacy" },
-  robots: { index: true, follow: true },
+  robots: { index: false, follow: false },
 };
 
 export default function SecondMemoryPrivacyPage() {
