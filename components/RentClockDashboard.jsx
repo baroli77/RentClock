@@ -290,7 +290,7 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
   const setOccupiers = (next) => onUpdate({ ...prop, rightToRent: { occupiers: next } });
   const addOccupier = () => setOccupiers([
     ...occupiers,
-    { id: `rtr-${Date.now().toString(36)}`, name: "", method: "", checkedOn: "", followUpDue: "", notes: "" },
+    { id: `rtr-${Date.now().toString(36)}`, name: "", rightType: "", method: "", checkedOn: "", followUpDue: "", notes: "" },
   ]);
   const updateOccupier = (id, patch) => setOccupiers(
     occupiers.map((occupier) => (occupier.id === id ? { ...occupier, ...patch } : occupier))
@@ -561,9 +561,18 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
                         )}
                         {item.key === "rtr" && (
                           <div>
+                            <p className="row-note">For a time-limited right to rent, the initial check must normally be carried out no earlier than 28 calendar days before the tenancy start date. An unlimited-right check can be completed at any time before the agreement is entered into.</p>
                             {occupiers.map((occupier, index) => (
                               <div className="rtr-record" key={occupier.id || index}>
                                 <label><span className="lbl">Adult occupier</span><input value={occupier.name || ""} onChange={(e) => updateOccupier(occupier.id, { name: e.target.value })} placeholder="Name" /></label>
+                                <label>
+                                  <span className="lbl">Right to rent</span>
+                                  <select value={occupier.rightType || ""} onChange={(e) => updateOccupier(occupier.id, { rightType: e.target.value })}>
+                                    <option value="">Select…</option>
+                                    <option value="unlimited">Unlimited</option>
+                                    <option value="time-limited">Time-limited</option>
+                                  </select>
+                                </label>
                                 <label>
                                   <span className="lbl">Check method</span>
                                   <select value={occupier.method || ""} onChange={(e) => updateOccupier(occupier.id, { method: e.target.value })}>
@@ -585,7 +594,7 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
                         )}
                         {item.userDateField && (
                           <label className="inline-detail">
-                            <span className="lbl">Follow-up due (if required)</span>
+                            <span className="lbl">{item.userDateLabel || "Follow-up due (if required)"}</span>
                             <input
                               type="date"
                               value={prop.dates?.[item.userDateField] || ""}
