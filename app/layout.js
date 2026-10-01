@@ -17,7 +17,7 @@ export const metadata = {
     template: "%s · RentClock",
   },
   description:
-    "Track gas safety, EICR, EPC and Renters' Rights Act deadlines across your properties. Never miss a renewal, never risk a fine. £5.99/month, unlimited properties.",
+    "Track gas safety, EICR, EPC and selected Renters' Rights Act deadlines across your properties. Stay ahead of renewals and reduce the risk of missed compliance dates. £5.99/month, unlimited properties.",
   authors: [{ name: "RentClock" }],
   openGraph: {
     type: "website",

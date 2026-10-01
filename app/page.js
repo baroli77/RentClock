@@ -3,7 +3,7 @@ import PublicHeader from "@/components/PublicHeader";
 import { pageMetadata } from "@/lib/site";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com";
-export const metadata = { ...pageMetadata({ title: "RentClock — compliance deadlines for small landlords", description: "Track gas safety, EICR, EPC and Renters' Rights Act deadlines across your properties. Never miss a renewal, never risk a fine. £5.99/month, unlimited properties.", path: "/", eyebrow: "For small landlords in England" }), title: { absolute: "RentClock — compliance deadlines for small landlords" } };
+export const metadata = { ...pageMetadata({ title: "RentClock — compliance deadlines for small landlords", description: "Track gas safety, EICR, EPC and selected Renters' Rights Act deadlines across your properties. Stay ahead of renewals and reduce the risk of missed compliance dates. £5.99/month, unlimited properties.", path: "/", eyebrow: "For small landlords in England" }), title: { absolute: "RentClock — compliance deadlines for small landlords" } };
 
 export default function Landing() {
   const softwareLd = {
@@ -15,7 +15,7 @@ export default function Landing() {
     applicationSubCategory: "Landlord compliance software",
     operatingSystem: "Web",
     description:
-      "Compliance deadline tracker for small landlords in England. Tracks gas safety, EICR, EPC, deposit and Renters' Rights Act deadlines with email reminders.",
+      "Compliance deadline tracker for small landlords in England. Tracks gas safety, EICR, EPC, deposit and selected Renters' Rights Act deadlines with email reminders.",
     image: `${SITE}/og?title=RentClock&eyebrow=Compliance+deadlines+for+small+landlords`,
     offers: {
       "@type": "Offer",
