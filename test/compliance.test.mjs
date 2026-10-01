@@ -8,6 +8,7 @@ import {
   recurringStatus,
   rightToRentOccupiers,
   rightToRentFollowUps,
+  rightToRentInitialStatus,
   toISO,
 } from "../lib/compliance.js";
 
@@ -28,10 +29,21 @@ test("deposit deadline is based on receipt, not tenancy start", () => {
   assert.equal(toISO(status.due), "2026-07-10");
 });
 
-test("Right to Rent and post-Act written terms use the agreement date", () => {
+test("Unlimited Right to Rent checks use the agreement date and post-Act written terms use the agreement date", () => {
   const property = { agreementDate: "2026-07-01", tenancyStart: "2026-07-20", agreementType: "written" };
   assert.equal(toISO(oneoffStatus(item("rtr"), false, property).due), "2026-07-01");
   assert.equal(toISO(oneoffStatus(item("wsot"), false, property).due), "2026-07-01");
+});
+
+test("Time-limited Right to Rent checks use the tenancy start date and expose their 28-day check window", () => {
+  const property = {
+    agreementDate: "2026-07-01",
+    tenancyStart: "2026-07-20",
+    rightToRent: { occupiers: [{ id: "a", rightType: "time-limited" }] },
+  };
+  const status = rightToRentInitialStatus(property, false);
+  assert.equal(toISO(status.due), "2026-07-20");
+  assert.equal(toISO(status.windowOpens), "2026-06-22");
 });
 
 test("legacy How to Rent is opt-in and pre-Act verbal terms use 31 May deadline", () => {
