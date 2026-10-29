@@ -13,7 +13,8 @@ export async function GET(request,{params}) {
  const property={...data.payload,id:data.id};const docs=property.docs || [];
  if(docs.length>50 || docs.reduce((n,d)=>n+(Number(d.size)||0),0)>30*1024*1024)return NextResponse.json({error:'Export up to 50 documents and 30 MB per pack. Download larger files individually.'},{status:413});
  if(docs.some(d=>typeof d.path!=='string' || !d.path.startsWith(`${user.id}/`) || d.path.split('/').some(s=>s==='..' || s==='.')))return NextResponse.json({error:'Invalid document reference in property'},{status:400});
- const {data:profile}=await db.from('profiles').select('registration_renewal_due').eq('id',user.id).single();
+ const {data:profile,error:profileError}=await db.from('profiles').select('registration_renewal_due').eq('id',user.id).single();
+ if(profileError)return NextResponse.json({error:'Could not load the common renewal date. Retry the export.'},{status:500});
  const entries=[...RECURRING.map(item=>({item,st:recurringStatus(property,item)})),...ONEOFFS.map(item=>({item,st:oneoffStatus(item,property.checks?.[item.key],property)})),...rightToRentFollowUps(property),...registrationTasks(property,profile?.registration_renewal_due || '')];
  const records=entries.map(({item,st})=>({label:item.label,due:st.due ? toISO(st.due):'',status:st.code}));
  const documents=[];

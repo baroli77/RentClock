@@ -1097,7 +1097,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
                       ? `${a.overdue} overdue`
                       : a.soon > 0
                       ? `${a.soon} due within 60 days`
-                      : a.missing ? `${a.missing} records missing` : "No current dated alerts; review other duties"
+                      : a.missing ? `${a.missing} ${a.missing===1?"record":"records"} missing` : "No current dated alerts; review other duties"
                   }
                 >
                   <span className="side-name">{p.name}</span>
@@ -1105,6 +1105,8 @@ export default function RentClockDashboard({ initialProperties, email, access, b
                     <span className="side-pill">{a.overdue} overdue</span>
                   ) : a.soon > 0 ? (
                     <span className="side-pill soon">{a.soon} soon</span>
+                  ) : a.missing ? (
+                    <span className="side-pill soon">{a.missing} missing</span>
                   ) : (
                     <span className="side-ok mono">✓</span>
                   )}
