@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { recordMilestone } from "@/lib/product-milestones";
 import { hasAccess } from "@/lib/billing";
 
 const MAX_DOC_BYTES = 5 * 1024 * 1024;
@@ -49,6 +50,7 @@ export async function POST(request) {
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  if (["gas","eicr","epc"].includes(form.get("itemKey"))) await recordMilestone(user.id, "first_certificate_uploaded");
   return NextResponse.json({ path, name: file.name, size: file.size });
 }
 

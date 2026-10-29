@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { datedItems, missingItems, fmt, toISO, today } from "@/lib/compliance";
+import { registrationTasks } from "@/lib/registration-workflow";
+import { sendTrackedEmail } from "@/lib/email-delivery";
+import { forwardPendingMilestones } from "@/lib/product-milestones";
 import { reminderEmail, missingEmail } from "@/lib/email";
 
 // Daily cron (see vercel.json). Sends dated-deadline reminders every day and,
@@ -42,7 +45,7 @@ async function listEligibleProfiles(admin) {
   for (let from = 0; ; from += PROFILE_PAGE_SIZE) {
     const { data, error } = await admin
       .from("profiles")
-      .select("id, email, subscription_status")
+      .select("id, email, subscription_status, registration_renewal_due")
       .in("subscription_status", ["active", "trialing"])
       .range(from, from + PROFILE_PAGE_SIZE - 1);
     if (error) throw new Error(error.message);
@@ -111,7 +114,7 @@ export async function GET(request) {
 
     for (const row of rows || []) {
       const prop = { ...row.payload, id: row.id };
-      for (const { item, st } of datedItems(prop)) {
+      for (const { item, st } of [...datedItems(prop), ...registrationTasks(prop, profile.registration_renewal_due).filter(entry => entry.st.code !== "ok")]) {
         // Bucketed catch-up: fire the most urgent crossed threshold not yet
         // logged. <= matching self-heals a missed cron run. Overdue items are
         // deliberately treated differently: they get a fresh log stamp each
@@ -164,10 +167,10 @@ export async function GET(request) {
     }
 
     if (lines.length) {
-      let emailDelivered = false;
+      let emailAccepted = false;
       try {
         const { html, text } = reminderEmail({ lines, site });
-        const { error: reminderError } = await resend.emails.send({
+        await sendTrackedEmail({ admin, resend, userId: profile.id, kind: "deadline", itemCount: lines.length, onAccepted: () => { emailAccepted = true; }, message: {
           from,
           to: profile.email,
           subject:
@@ -176,11 +179,8 @@ export async function GET(request) {
               : `RentClock: ${lines.length} compliance deadlines need your attention`,
           html,
           text,
-        });
-        if (reminderError) {
-          throw new Error(`Resend rejected reminder: ${reminderError.message || JSON.stringify(reminderError)}`);
-        }
-        emailDelivered = true;
+        } });
+        emailAccepted = true;
         if (logRows.length) {
           const { error: logError } = await admin.from("reminders_sent").upsert(logRows, {
             onConflict: REMINDER_CONFLICT,
@@ -191,7 +191,7 @@ export async function GET(request) {
         sent += 1;
       } catch (e) {
         failures += 1;
-        if (!emailDelivered) await releaseClaims(admin, claimIds);
+        if (!emailAccepted) await releaseClaims(admin, claimIds);
         console.error(`Reminder failed for ${profile.email}:`, e.message);
       }
     }
@@ -226,10 +226,10 @@ export async function GET(request) {
       }
 
       if (missing.length) {
-        let emailDelivered = false;
+        let emailAccepted = false;
         try {
           const { html, text } = missingEmail({ items: missing, site });
-          const { error: nagError } = await resend.emails.send({
+          await sendTrackedEmail({ admin, resend, userId: profile.id, kind: "missing", itemCount: missing.length, onAccepted: () => { emailAccepted = true; }, message: {
             from,
             to: profile.email,
             subject:
@@ -238,11 +238,8 @@ export async function GET(request) {
                 : `RentClock: ${missing.length} certificates have no date recorded`,
             html,
             text,
-          });
-          if (nagError) {
-            throw new Error(`Resend rejected missing-date nag: ${nagError.message || JSON.stringify(nagError)}`);
-          }
-          emailDelivered = true;
+          } });
+          emailAccepted = true;
           const { error: missingLogError } = await admin.from("reminders_sent").upsert(missingLog, {
             onConflict: REMINDER_CONFLICT,
             ignoreDuplicates: true,
@@ -251,13 +248,14 @@ export async function GET(request) {
           nags += 1;
         } catch (e) {
           failures += 1;
-          if (!emailDelivered) await releaseClaims(admin, missingClaimIds);
+          if (!emailAccepted) await releaseClaims(admin, missingClaimIds);
           console.error(`Nag failed for ${profile.email}:`, e.message);
         }
       }
     }
   }
 
+  try { await forwardPendingMilestones(admin); } catch { console.warn("Milestone forwarding will retry on the next run"); }
   return NextResponse.json(
     { ok: failures === 0, emailsSent: sent, nagsSent: nags, failures },
     { status: failures ? 500 : 200 }

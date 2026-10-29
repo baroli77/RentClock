@@ -14,6 +14,7 @@ function dateOnly(value) {
 export default async function sitemap() {
   const staticPages = [
     { url: `${SITE}/`, lastModified: "2026-10-29", changeFrequency: "weekly", priority: 1 },
+    { url: `${SITE}/demo`, lastModified: "2026-10-29", changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE}/pricing`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE}/guides`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${SITE}/tools`, changeFrequency: "monthly", priority: 0.8 },

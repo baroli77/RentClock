@@ -18,7 +18,9 @@ export default function PrivacyPage() {
 
         <h2>Information we collect</h2>
         <p>We collect your email address and account information when you sign in. We also store the property, tenancy and compliance information you add, along with any documents you choose to upload. Payment card details are collected and processed by Stripe; RentClock does not store them.</p>
-        <p>We also record limited first-party marketing and usage information so we can understand how people find RentClock and which campaigns lead to sign-ups or subscriptions. This can include referral or UTM campaign parameters, a pseudonymous browser-session identifier, your internal RentClock user identifier after sign-in, and subscription conversion events. We do not send your email address to our internal marketing-attribution system.</p>
+        <p>We also record limited first-party marketing and usage information so we can understand how people find RentClock and which campaigns lead to sign-ups or subscriptions. This can include referral or UTM campaign parameters, a pseudonymous browser-session identifier, your internal RentClock user identifier after sign-in, subscription conversion events, and first-property, first-certificate and guided-setup milestones. We do not send your email address to our internal marketing-attribution system.</p>
+
+        <p>We record reminder delivery events, such as acceptance, delivery to a receiving mail server, delays and bounces, to help you identify problems with essential emails. We do not use email-open or click tracking for this feature.</p>
 
         <h2>How we use your information</h2>
         <p>We use your information to provide the service, keep your account secure, send essential account and deadline-reminder emails, process subscriptions, respond to support requests, understand the effectiveness of our marketing and improve the reliability of RentClock. We do not sell your personal information.</p>

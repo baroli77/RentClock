@@ -13,7 +13,7 @@ export default async function Dashboard() {
   if (!user) redirect("/login");
 
   const [profileResult, propertiesResult] = await Promise.all([
-    supabase.from("profiles").select("subscription_status").eq("id", user.id).single(),
+    supabase.from("profiles").select("subscription_status, registration_renewal_due").eq("id", user.id).single(),
     supabase.from("properties").select("id, payload").order("updated_at", { ascending: true }),
   ]);
   if (profileResult.error) {
@@ -36,6 +36,7 @@ export default async function Dashboard() {
       email={user.email}
       access={access}
       billingOn={billingEnabled()}
+      initialRenewalDue={profile?.registration_renewal_due || ""}
     />
   );
 }

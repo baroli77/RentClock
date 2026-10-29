@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { validateProperty } from "@/lib/property-records";
+import { markRegistrationChange } from "@/lib/registration-workflow";
+import { recordMilestone } from "@/lib/product-milestones";
 import { hasAccess } from "@/lib/billing";
 
 async function canEdit(supabase, userId) {
@@ -67,7 +70,16 @@ export async function POST(request) {
   if (!property || typeof property !== "object" || Array.isArray(property)) {
     return NextResponse.json({ error: "property object required" }, { status: 400 });
   }
-  const { id, ...payload } = property;
+  const invalid = validateProperty(property, user.id);
+  if (invalid) return NextResponse.json({ error: invalid }, { status: 400 });
+  let previous = null;
+  if (typeof property.id === "string" && UUID_RE.test(property.id)) {
+    const result = await supabase.from("properties").select("payload").eq("id",property.id).eq("user_id",user.id).maybeSingle();
+    if (result.error) return NextResponse.json({error:"Could not load the property"},{status:500});
+    if (!result.data) return NextResponse.json({error:"Property not found"},{status:404});
+    previous = result.data.payload;
+  }
+  const { id, ...payload } = markRegistrationChange(previous, property);
   if (!String(payload.name || payload.address || "").trim()) {
     return NextResponse.json({ error: "Property name or address required" }, { status: 400 });
   }
@@ -97,6 +109,8 @@ export async function POST(request) {
       .single());
   }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!previous) await recordMilestone(user.id, "first_property_saved");
+  if (payload.setup?.completed && !previous?.setup?.completed) await recordMilestone(user.id, "setup_completed");
   return NextResponse.json({ property: { ...saved.payload, id: saved.id } });
 }
 

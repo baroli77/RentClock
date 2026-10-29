@@ -1,7 +1,12 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, createContext, useContext } from "react";
 import Link from "next/link";
+import PortfolioTools from "@/components/PortfolioTools";
+import RegistrationWorkflow from "@/components/RegistrationWorkflow";
+import ReminderHistory from "@/components/ReminderHistory";
+import SetupWizard from "@/components/SetupWizard";
+import { markRegistrationChange, registrationTasks } from "@/lib/registration-workflow";
 import BrandLogo from "@/components/BrandLogo";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -24,6 +29,8 @@ import {
 // ---------------------------------------------------------------------------
 // Small components
 // ---------------------------------------------------------------------------
+
+const DemoMode = createContext(false);
 
 function Stamp({ code, tilt }) {
   const meta = STATUS_META[code];
@@ -52,11 +59,13 @@ function FixLink({ item, code }) {
 }
 
 function DocList({ prop, itemKey, onUpdate }) {
+  const demo = useContext(DemoMode);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const docs = (prop.docs || []).filter((d) => d.itemKey === itemKey);
 
   const upload = async (e) => {
+    if (demo) return;
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
@@ -65,6 +74,7 @@ function DocList({ prop, itemKey, onUpdate }) {
     try {
       const form = new FormData();
       form.append("file", file);
+      form.append("itemKey", itemKey);
       const res = await fetch("/api/docs", { method: "POST", body: form });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Upload failed");
@@ -85,6 +95,7 @@ function DocList({ prop, itemKey, onUpdate }) {
   };
 
   const download = async (doc) => {
+    if (demo) { setError("This is a fictional sample record. Preview the reminder email using the demo banner."); return; }
     setError("");
     try {
       const res = await fetch(`/api/docs?path=${encodeURIComponent(doc.path)}`);
@@ -97,6 +108,7 @@ function DocList({ prop, itemKey, onUpdate }) {
   };
 
   const remove = async (doc) => {
+    if (demo) { onUpdate({ ...prop, docs: (prop.docs || []).filter(d => d.id !== doc.id) }); return; }
     setError("");
     setBusy(true);
     try {
@@ -124,8 +136,8 @@ function DocList({ prop, itemKey, onUpdate }) {
         </span>
       ))}
       <label className={`doc-add mono ${busy ? "busy" : ""}`}>
-        {busy ? "Saving…" : "+ attach"}
-        <input type="file" accept=".pdf,image/jpeg,image/png,image/webp" onChange={upload} disabled={busy} hidden />
+        {demo ? "Sample documents only" : busy ? "Saving…" : "+ attach"}
+        <input type="file" accept=".pdf,image/jpeg,image/png,image/webp" onChange={upload} disabled={busy || demo} hidden />
       </label>
       {error && <span className="doc-err">{error}</span>}
     </div>
@@ -256,7 +268,7 @@ function NewTenancyForm({ onConfirm, onCancel }) {
 // Property card
 // ---------------------------------------------------------------------------
 
-function PropertyCard({ prop, onUpdate, onRemove }) {
+function PropertyCard({ prop, onUpdate, onRemove, renewalDue, onSaveRenewal }) {
   const open = true;
   const [newTenancy, setNewTenancy] = useState(false);
 
@@ -325,6 +337,7 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
     statuses.filter((s) => s.st.code === "overdue").length +
     ONEOFFS.filter((i) => oneoffStatus(i, prop.checks?.[i.key], prop).code === "overdue").length +
     followUps.filter((entry) => entry.st.code === "overdue").length +
+    registrationTasks(prop, renewalDue).filter(entry => entry.st.code === "overdue").length +
     (bandBad ? 1 : 0);
 
   return (
@@ -430,6 +443,8 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
             <NewTenancyForm onConfirm={startNewTenancy} onCancel={() => setNewTenancy(false)} />
           )}
 
+          <RegistrationWorkflow property={prop} onUpdate={onUpdate} renewalDue={renewalDue} onSaveRenewal={onSaveRenewal} />
+
           <div className="eyebrow">Recurring certificates</div>
           <div className="ledger">
             {statuses.map(({ item, st }) => (
@@ -529,7 +544,7 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
 
           <div className="eyebrow">Tenancy & Renters’ Rights Act tasks</div>
           <div className="ledger">
-            {ONEOFFS.map((item) => {
+            {ONEOFFS.filter(item => item.key !== "prsdb").map((item) => {
               const done = !!prop.checks?.[item.key];
               const st = oneoffStatus(item, done, prop);
               return (
@@ -645,10 +660,26 @@ function PropertyCard({ prop, onUpdate, onRemove }) {
 // Dashboard
 // ---------------------------------------------------------------------------
 
-export default function RentClockDashboard({ initialProperties, email, access, billingOn }) {
+export default function RentClockDashboard({ initialProperties, email, access, billingOn, initialRenewalDue = "", demo = false, reminderHTML = "" }) {
   const router = useRouter();
   const [props, setProps] = useState(initialProperties || []);
-  const [view, setView] = useState("overview"); // "overview" | "add" | property id
+  const [view, setView] = useState(initialProperties?.some(p => p.setup && !p.setup.completed) ? "setup" : "overview"); // "overview" | "add" | property id
+  const [renewalDue, setRenewalDue] = useState(initialRenewalDue);
+  const [demoReminderOpen, setDemoReminderOpen] = useState(false);
+  useEffect(() => {
+    if (!demoReminderOpen) return;
+    const previous = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const close = document.querySelector(".demo-modal button");
+    close?.focus();
+    function keyboard(event) {
+      if (event.key === "Escape") setDemoReminderOpen(false);
+      if (event.key === "Tab") { event.preventDefault(); close?.focus(); }
+    }
+    document.addEventListener("keydown", keyboard);
+    return () => { document.body.style.overflow = previousOverflow; document.removeEventListener("keydown", keyboard); previous?.focus(); };
+  }, [demoReminderOpen]);
   const [saveState, setSaveState] = useState("saved"); // saved | saving | error
   const [checkoutState, setCheckoutState] = useState("idle");
   const [checkoutError, setCheckoutError] = useState("");
@@ -665,6 +696,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
   viewRef.current = view;
 
   const drainSaves = useCallback(async () => {
+    if (demo) { pendingRef.current.clear(); deleteRef.current.clear(); setSaveState("saved"); return true; }
     if (inFlightRef.current) return inFlightRef.current;
     if (timerRef.current) clearTimeout(timerRef.current);
     if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
@@ -689,8 +721,9 @@ export default function RentClockDashboard({ initialProperties, email, access, b
           }
 
           const saves = [...pendingRef.current.values()];
-          pendingRef.current.clear();
           for (const submitted of saves) {
+            if (pendingRef.current.get(submitted.id) !== submitted) continue;
+            pendingRef.current.delete(submitted.id);
             if (deleteRef.current.has(submitted.id)) continue;
             const res = await fetch("/api/data", {
               method: "POST",
@@ -716,6 +749,10 @@ export default function RentClockDashboard({ initialProperties, email, access, b
               latestRef.current = next;
               setProps(next);
               if (viewRef.current === submitted.id) setView(serverId);
+            } else if (!pendingRef.current.has(submitted.id)) {
+              const next = latestRef.current.map(item => item.id === submitted.id ? json.property : item);
+              latestRef.current = next;
+              setProps(next);
             }
           }
         }
@@ -734,9 +771,9 @@ export default function RentClockDashboard({ initialProperties, email, access, b
       }
     };
 
-    inFlightRef.current = run();
+    inFlightRef.current = Promise.resolve().then(run);
     return inFlightRef.current;
-  }, []);
+  }, [demo]);
 
   const scheduleSave = useCallback(
     (property) => {
@@ -776,10 +813,11 @@ export default function RentClockDashboard({ initialProperties, email, access, b
     setView(p.id);
   };
   const updateProperty = (p) => {
-    commitProperty(latestRef.current.map((x) => (x.id === p.id ? p : x)), p);
+    const next = markRegistrationChange(latestRef.current.find(x => x.id === p.id), p);
+    commitProperty(latestRef.current.map((x) => (x.id === p.id ? next : x)), next);
   };
   const removeProperty = async (id) => {
-    if (!window.confirm("Remove this property and its records?")) return;
+    if (!demo && !window.confirm("Remove this property and its records?")) return;
     const gone = latestRef.current.find((x) => x.id === id);
     pendingRef.current.delete(id);
     if (/^[0-9a-f-]{36}$/i.test(id)) deleteRef.current.add(id);
@@ -790,7 +828,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
     drainSaves();
     setView("overview");
     // Clean up attached documents from storage (best effort, after the UI moves on)
-    for (const d of gone?.docs || []) {
+    for (const d of demo ? [] : gone?.docs || []) {
       try {
         await fetch(`/api/docs?path=${encodeURIComponent(d.path)}`, { method: "DELETE" });
       } catch {
@@ -805,7 +843,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
   const propAlerts = (p) => {
     const rec = RECURRING.map((item) => recurringStatus(p, item));
     const one = ONEOFFS.map((item) => oneoffStatus(item, p.checks?.[item.key], p));
-    const all = [...rec, ...one, ...rightToRentFollowUps(p).map((entry) => entry.st)];
+    const all = [...rec, ...one, ...rightToRentFollowUps(p).map((entry) => entry.st), ...registrationTasks(p, renewalDue).map(entry => entry.st)];
     let overdue = all.filter((st) => st.code === "overdue").length;
     const soon = all.filter((st) => st.code === "soon").length;
     if (p.applicability?.epcExempt !== true && (p.epcBand === "F" || p.epcBand === "G")) overdue += 1;
@@ -897,7 +935,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
       const st = oneoffStatus(item, p.checks?.[item.key], p);
       if (st.due && !["ok", "na"].includes(st.code)) entries.push({ prop: p, label: item.label, st });
     }
-    for (const entry of rightToRentFollowUps(p)) {
+    for (const entry of [...rightToRentFollowUps(p), ...registrationTasks(p, renewalDue)]) {
       entries.push({ prop: p, label: entry.item.label, st: entry.st });
     }
   }
@@ -909,8 +947,36 @@ export default function RentClockDashboard({ initialProperties, email, access, b
   const overdue = entries.filter((e) => e.st.code === "overdue").length + bandProblems;
   const next = dated.find((e) => e.st.days >= 0) || dated[0] || null;
 
+  async function saveSetup(property) {
+    if (!(await drainSaves())) throw new Error("Save pending changes before continuing setup.");
+    let saved;
+    if (demo) saved = { ...property, id: property.id.startsWith("tmp-") ? `demo-setup-${Date.now()}` : property.id };
+    else {
+      const response = await fetch("/api/data", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ property }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Property could not be saved");
+      saved = data.property;
+    }
+    const next = latestRef.current.filter(p => p.id !== property.id && p.id !== saved.id).concat(saved);
+    latestRef.current = next; setProps(next); setSaveState("saved");
+    return saved;
+  }
+  async function saveRenewal(value) {
+    if (!demo) {
+      const response = await fetch("/api/account/setup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ renewalDue: value }) });
+      const data = await response.json(); if (!response.ok) throw new Error(data.error || "Could not save renewal date");
+    }
+    setRenewalDue(value);
+  }
+  function importedProperties(properties) {
+    const known = new Set(latestRef.current.map(p => p.id));
+    const next = [...latestRef.current, ...properties.filter(p => !known.has(p.id))];
+    latestRef.current = next; setProps(next); setView("overview");
+  }
+  const setupProperty = props.find(p => p.setup && !p.setup.completed);
+
   return (
-    <div className="app">
+    <DemoMode.Provider value={demo}><div className="app">
       <header className="masthead">
         <div className="brand">
           <Link href="/" className="brand-link" aria-label="RentClock home">
@@ -935,11 +1001,12 @@ export default function RentClockDashboard({ initialProperties, email, access, b
               Billing
             </button>
           )}
-          <button className="navbtn" onClick={signOut}>
-            Sign out
-          </button>
+          {demo ? <Link className="btn brass sm" href="/login?trial=1">Start your free trial</Link> : <button className="navbtn" onClick={signOut}>Sign out</button>}
         </div>
       </header>
+
+      {demo && <section className="demo-banner"><div><b>Interactive demo — fictional properties</b><p>Changes stay in this browser page. No account, card or real email sends.</p></div><div className="workflow-actions"><button className="btn ghost sm" onClick={() => setDemoReminderOpen(true)}>Preview a reminder email</button><button className="btn ghost sm" onClick={() => window.location.reload()}>Reset demo</button></div></section>}
+      {demoReminderOpen && <div className="demo-modal" role="dialog" aria-modal="true" aria-labelledby="demo-email-title"><div><div className="workflow-actions"><h2 id="demo-email-title">Example reminder email</h2><button className="btn ghost" autoFocus onClick={() => setDemoReminderOpen(false)}>Close preview</button></div><iframe title="Fictional RentClock reminder email" sandbox="" tabIndex={-1} srcDoc={reminderHTML}/></div></div>}
 
       {!access && (
         <section className="card paywall">
@@ -989,7 +1056,9 @@ export default function RentClockDashboard({ initialProperties, email, access, b
         </section>
       )}
 
-      {props.length === 0 && effView !== "add" ? (
+      <PortfolioTools properties={props} canEdit={access} onImported={importedProperties} beforeExport={drainSaves} demo={demo} />
+
+      {props.length === 0 && !["add", "setup"].includes(effView) ? (
         <section className="empty card">
           <h2>Start your ledger</h2>
           <p>
@@ -998,8 +1067,8 @@ export default function RentClockDashboard({ initialProperties, email, access, b
             the dates you record. Check local licensing and property-specific duties separately.
           </p>
           {access && (
-            <button className="btn primary" onClick={() => setView("add")}>
-              Add your first property
+            <button className="btn primary" onClick={() => setView("setup")}>
+              Set up your first property
             </button>
           )}
         </section>
@@ -1092,6 +1161,8 @@ export default function RentClockDashboard({ initialProperties, email, access, b
                   </div>
                 </section>
 
+                {access && <button className="btn ghost sm" onClick={() => setView("setup")}>{setupProperty ? "Resume guided setup" : "Guided setup for a new property"}</button>}
+                <ReminderHistory demo={demo} />
                 {dated.length > 0 && (
                   <section className="card">
                     <div className="eyebrow">Upcoming across all properties</div>
@@ -1115,6 +1186,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
               </>
             )}
 
+            {effView === "setup" && access && <SetupWizard initialProperty={setupProperty} onPersist={saveSetup} onComplete={p => setView(p.id)} onCancel={id => setView(id?.startsWith("tmp-") ? "overview" : id)} demo={demo} />}
             {effView === "add" && access && (
               <AddPropertyForm onAdd={addProperty} onCancel={() => setView("overview")} />
             )}
@@ -1128,6 +1200,8 @@ export default function RentClockDashboard({ initialProperties, email, access, b
                     prop={p}
                     onUpdate={updateProperty}
                     onRemove={removeProperty}
+                    renewalDue={renewalDue}
+                    onSaveRenewal={saveRenewal}
                   />
                 ))}
           </main>
@@ -1141,6 +1215,6 @@ export default function RentClockDashboard({ initialProperties, email, access, b
           a deadline ledger, not legal advice.
         </p>
       </footer>
-    </div>
+    </div></DemoMode.Provider>
   );
 }

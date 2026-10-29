@@ -39,6 +39,7 @@ export default function Landing() {
             <p className="home-v2-lead">RentClock puts core gas safety, EICR, EPC, deposit and selected Renters&rsquo; Rights deadlines in one simple ledger — then emails you before tracked dates lapse.</p>
             <div className="home-v2-hero-actions">
               <Link href="/login?trial=1" className="btn brass">Start your 14-day free trial</Link>
+              <Link href="/demo" className="btn ghost">Try the demo — no signup</Link>
               <Link href="/login" className="home-v2-sign-in">Already have an account? Sign in</Link>
             </div>
             <p className="home-v2-stakes">Up to £40,000 at stake for some landlord offences.</p>

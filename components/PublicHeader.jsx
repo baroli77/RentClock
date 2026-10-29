@@ -5,6 +5,7 @@ import { useState } from "react";
 import BrandLogo from "@/components/BrandLogo";
 
 const links = [
+  ["Try the demo", "/demo"],
   ["Software", "/landlord-compliance-software"],
   ["Free tools", "/tools"],
   ["Guides", "/guides"],

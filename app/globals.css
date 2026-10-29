@@ -938,3 +938,57 @@ input[type="checkbox"] {
   .calendar-card { padding: 0; border: 0; box-shadow: none; }
   .calendar-card li { break-inside: avoid; }
 }
+
+/* Guided setup, portfolio tools and delivery reporting. */
+.workflow-actions {display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:14px 0}
+.workflow-note {font-size:13px;color:var(--grey);line-height:1.6}
+.portfolio-tools {margin:22px 0;padding:20px}
+.portfolio-tools select {display:block;max-width:100%;min-width:230px;margin-top:7px}
+.portfolio-tools label.btn, .setup-wizard label.btn {cursor:pointer}
+.portfolio-tools label.btn:focus-within,.setup-wizard label.btn:focus-within {outline:2px solid var(--brass);outline-offset:3px}
+.portfolio-tools input[type=file],.setup-wizard input[type=file] {display:block!important;position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.table-scroll {overflow-x:auto;max-width:100%;margin:16px 0}
+.table-scroll table {border-collapse:collapse;width:100%;font-size:13px}
+.table-scroll th,.table-scroll td {text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top;min-width:110px}
+.registration-workflow {padding:22px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:24px 0}
+.registration-workflow h3 {font-size:22px;margin:0 0 12px}
+.registration-workflow .form-grid,.setup-wizard .form-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:20px 0}
+.registration-workflow label,.setup-wizard .form-grid label {min-width:0}
+.registration-workflow input:not([type=checkbox]),.registration-workflow select,.setup-wizard input:not([type=checkbox]),.setup-wizard select {width:100%;box-sizing:border-box;min-width:0;min-height:44px}
+.renewal-setting {background:var(--paper);padding:16px;border:1px solid var(--line);border-radius:8px;margin:20px 0}
+.renewal-setting input {max-width:280px;display:block;margin:8px 0 12px}
+.registration-tasks {list-style:none;padding:0;margin:16px 0}
+.registration-tasks li {display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 0;border-top:1px solid var(--line);font-size:13px}
+.registration-tasks span {color:var(--grey)}
+.setup-wizard {padding:26px}
+.setup-wizard progress {width:100%;height:6px;accent-color:var(--brass);margin-bottom:18px}
+.setup-wizard h2 {font-size:28px;margin:0 0 16px}
+.setup-success {background:var(--green-bg);padding:18px;border-radius:8px;margin:20px 0}
+.demo-banner {display:flex;justify-content:space-between;align-items:center;gap:20px;padding:18px 22px;margin:20px 0;background:#eaf5f0;border:1px solid #93bca9;border-radius:10px}
+.demo-banner p {font-size:13px;margin:8px 0 0}
+.demo-modal {position:fixed;inset:0;z-index:1000;background:#10251cc9;padding:24px;display:grid;place-items:center}
+.demo-modal>div {width:min(780px,100%);height:min(820px,94vh);background:var(--paper);border-radius:12px;padding:18px;display:flex;flex-direction:column;box-sizing:border-box}
+.demo-modal .workflow-actions {justify-content:space-between;margin-top:0}
+.demo-modal h2 {font-size:20px;margin:0}
+.demo-modal iframe {border:1px solid var(--line);background:white;width:100%;flex:1;min-height:0}
+.reminder-history {padding:22px;margin:20px 0}
+.reminder-history ul {list-style:none;margin:10px 0;padding:0}
+.reminder-history li {display:flex;justify-content:space-between;gap:16px;align-items:center;border-bottom:1px solid var(--line);padding:15px 0;font-size:13px}
+.reminder-history small {display:block;color:var(--grey);margin-top:6px}
+.delivery-status {padding:5px 9px;border-radius:6px;background:#f0f2f4;font-size:12px;white-space:normal}
+.delivery-delivered {background:var(--green-bg);color:#145b45}
+.delivery-bounced,.delivery-failed,.delivery-suppressed,.delivery-complained,.delivery-warning {background:#fff0ed;color:#973725}
+.delivery-warning {padding:12px;border-radius:6px;line-height:1.5}
+.activation-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0}
+.activation-grid>div {border:1px solid var(--line);border-radius:8px;padding:16px}
+.activation-grid strong {display:block;font-size:28px;margin-bottom:5px}
+@media(max-width:640px){
+ .demo-banner{align-items:flex-start;flex-direction:column;gap:6px}
+ .demo-modal{padding:8px}.demo-modal>div{padding:12px;height:94vh}
+ .registration-workflow .form-grid,.setup-wizard .form-grid{grid-template-columns:1fr}
+ .setup-wizard,.portfolio-tools,.reminder-history{padding:18px}
+ .reminder-history li{align-items:flex-start;flex-direction:column;gap:8px}
+ .activation-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .portfolio-tools select{min-width:0;width:100%}
+ .workflow-actions .btn{white-space:normal;text-align:center;max-width:100%}
+}
