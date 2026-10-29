@@ -3,7 +3,6 @@ import Stripe from "stripe";
 import { Resend } from "resend";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { newMemberEmail } from "@/lib/email";
-import { trackMarketingEvent } from "@/lib/marketingman-attribution";
 
 // Stripe webhook: keeps profiles.subscription_status in sync.
 // Events to enable on the endpoint: checkout.session.completed,
@@ -65,18 +64,6 @@ export async function POST(request) {
         session.client_reference_id || session.metadata?.supabase_user_id || sub.metadata?.supabase_user_id
       );
 
-      if (sub.status === "trialing") {
-        await trackMarketingEvent({
-          eventType: "trial",
-          externalUserId: profile.id,
-          dedupeKey: `rentclock:stripe:${event.id}`,
-          metadata: {
-            stripeSubscriptionId: sub.id,
-            planInterval: sub.items.data[0]?.price?.recurring?.interval || null,
-          },
-        });
-      }
-
       const owner = process.env.OWNER_NOTIFICATION_EMAIL?.trim();
       if (profile && !profile.owner_notification_sent_at && process.env.RESEND_API_KEY && owner) {
         const { data: claimed, error: claimError } = await admin
@@ -132,22 +119,7 @@ export async function POST(request) {
       const invoice = event.data.object;
       if (invoice.subscription) {
         const sub = await stripe.subscriptions.retrieve(stripeId(invoice.subscription));
-        const profile = await setStatusByCustomer(invoice.customer, sub.status, sub.metadata?.supabase_user_id);
-        const amountPaid = Math.max(0, Number(invoice.amount_paid || 0));
-        if (amountPaid > 0) {
-          await trackMarketingEvent({
-            eventType: "purchase",
-            externalUserId: profile.id,
-            revenuePence: amountPaid,
-            dedupeKey: `rentclock:stripe:${event.id}`,
-            metadata: {
-              stripeInvoiceId: invoice.id,
-              stripeSubscriptionId: sub.id,
-              billingReason: invoice.billing_reason || null,
-              currency: invoice.currency || "gbp",
-            },
-          });
-        }
+        await setStatusByCustomer(invoice.customer, sub.status, sub.metadata?.supabase_user_id);
       }
       break;
     }

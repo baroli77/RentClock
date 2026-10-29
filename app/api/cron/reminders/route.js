@@ -4,7 +4,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { datedItems, missingItems, fmt, toISO, today } from "@/lib/compliance";
 import { registrationTasks } from "@/lib/registration-workflow";
 import { sendTrackedEmail } from "@/lib/email-delivery";
-import { forwardPendingMilestones } from "@/lib/product-milestones";
 import { reminderEmail, missingEmail } from "@/lib/email";
 
 // Daily cron (see vercel.json). Sends dated-deadline reminders every day and,
@@ -255,7 +254,6 @@ export async function GET(request) {
     }
   }
 
-  try { await forwardPendingMilestones(admin); } catch { console.warn("Milestone forwarding will retry on the next run"); }
   return NextResponse.json(
     { ok: failures === 0, emailsSent: sent, nagsSent: nags, failures },
     { status: failures ? 500 : 200 }

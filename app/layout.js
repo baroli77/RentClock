@@ -1,8 +1,6 @@
 import "./globals.css";
 import "./guide-extras.css";
-import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
-import MarketingAttribution from "@/components/MarketingAttribution";
 import { Bricolage_Grotesque, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com";
@@ -50,9 +48,6 @@ export default function RootLayout({ children }) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organisationLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }} />
         {children}
-        <Suspense fallback={null}>
-          <MarketingAttribution />
-        </Suspense>
         <Analytics />
       </body>
     </html>
