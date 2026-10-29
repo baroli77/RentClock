@@ -90,8 +90,8 @@ Both directions must work before launch. This is the step people screw up.
 
 The site ships SEO-ready: per-page titles/descriptions, OpenGraph + Twitter cards,
 canonical URLs, `sitemap.xml`, `robots.txt`, an SVG favicon (`app/icon.svg`), and
-JSON-LD structured data (SoftwareApplication + FAQ on the homepage, Article + FAQ on
-each guide).
+JSON-LD structured data (SoftwareApplication on the homepage, Article and
+breadcrumbs on guides). Visible FAQs remain; obsolete FAQ rich-result markup is not emitted.
 
 **IMPORTANT:** Set `NEXT_PUBLIC_SITE_URL` to the real domain in Vercel. The sitemap is
 revalidated hourly so newly published database guides can appear without a redeploy.
@@ -105,3 +105,11 @@ ages into ranking.
 **Still yours to do:** a proper OpenGraph share image (currently text cards only — add
 `app/opengraph-image.png`, 1200×630, for rich social previews), and submitting your
 sitemap to Google Search Console once live.
+
+### Date and content maintenance
+
+- `lib/registration.js` holds the reviewed regional registration timetable; the public calculator, registration guide and 2027 calendar share it.
+- `lib/compliance-calendar.js` exports the year-specific all-day calendar events and `.ics` serializer. Calendar downloads are snapshots.
+- `lib/registration-guide.js` and `lib/right-to-rent-guide.js` contain the reviewed October 2026 guidance. Static guides take precedence over database copies in articles, listings and the sitemap.
+- Deposit protection counts receipt as day one: the date offset is **29**, not 30, in the public calculator and shared dashboard/reminder rules. Regression tests cover both implementations and UK clock changes.
+- After material content changes, update the visible review date, structured data and sitemap together. Do not advance dates for cosmetic changes.

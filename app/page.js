@@ -3,7 +3,7 @@ import PublicHeader from "@/components/PublicHeader";
 import { pageMetadata } from "@/lib/site";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://rentclock.com";
-export const metadata = { ...pageMetadata({ title: "RentClock — compliance deadlines for small landlords", description: "Track gas safety, EICR, EPC and selected Renters' Rights Act deadlines across your properties. Stay ahead of renewals and reduce the risk of missed compliance dates. £5.99/month, unlimited properties.", path: "/", eyebrow: "For small landlords in England" }), title: { absolute: "RentClock — compliance deadlines for small landlords" } };
+export const metadata = { ...pageMetadata({ title: "Landlord Compliance Reminders for England | RentClock", description: "Track gas safety, EICR, EPC and deposit deadlines with email reminders for landlords in England. £5.99/month, unlimited properties.", path: "/", eyebrow: "For small landlords in England" }), title: { absolute: "Landlord Compliance Reminders for England | RentClock" } };
 
 export default function Landing() {
   const softwareLd = {
@@ -24,32 +24,18 @@ export default function Landing() {
       priceCurrency: "GBP",
     },
   };
-  const faqLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      ["Is RentClock legal advice?", "No. RentClock is a deadline ledger designed to help small landlords in England stay organised. For disputes or edge cases, speak to a professional."],
-      ["Can other users see my properties?", "No. Your data is isolated per account and documents are stored privately so only you can access them."],
-      ["What happens if I cancel?", "Cancel from the billing page and keep access until your period ends. Your ledger remains intact if you return."],
-    ].map(([name, text]) => ({
-      "@type": "Question",
-      name,
-      acceptedAnswer: { "@type": "Answer", text },
-    })),
-  };
 
   return (
     <div className="app home-v2">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
       <PublicHeader home />
 
       <main>
         <section className="home-v2-hero">
           <div>
-            <p className="eyebrow">For landlords with 1–10 properties · England</p>
-            <h1>Landlord compliance deadlines.<br />Know what&rsquo;s due before it becomes expensive.</h1>
+            <p className="eyebrow">Landlord compliance reminders · England</p>
+            <h1>Compliance dates.<br />Under control.</h1>
             <p className="home-v2-lead">RentClock puts core gas safety, EICR, EPC, deposit and selected Renters&rsquo; Rights deadlines in one simple ledger — then emails you before tracked dates lapse.</p>
             <div className="home-v2-hero-actions">
               <Link href="/login?trial=1" className="btn brass">Start your 14-day free trial</Link>
@@ -59,17 +45,18 @@ export default function Landing() {
             <p className="home-v2-note">Card required · £5.99/month or £59.90/year · cancel before day 14 to pay nothing</p>
           </div>
           <aside className="home-v2-ledger" aria-label="Example RentClock deadline ledger">
-            <div className="home-v2-ledger-top"><span>Your deadline ledger</span><span>saved</span></div>
+            <div className="home-v2-ledger-top"><span>Example deadline ledger</span><span>Illustrative dates</span></div>
             <div className="home-v2-property">12 Mill Road</div>
-            <Deadline name="Gas safety certificate" detail="Renewal date recorded" status="DUE SOON" />
-            <Deadline name="Electrical safety report" detail="Earlier report date supported" status="ON TRACK" ok />
-            <Deadline name="EPC" detail="Band and expiry recorded" status="ON TRACK" ok />
+            <Deadline name="Gas safety certificate" detail="Renew by 12 December 2026" status="DUE SOON" />
+            <Deadline name="Electrical safety report" detail="Next inspection: 20 May 2029" status="ON TRACK" ok />
+            <Deadline name="EPC" detail="Band C · expires 18 March 2031" status="ON TRACK" ok />
+            <p className="home-v2-example-reminder">Example email: 12 November 2026<br /><small>30 days before the gas safety deadline</small></p>
           </aside>
         </section>
 
         <div className="home-v2-trust" aria-label="RentClock benefits">
           <span><b>One place</b> for core property deadlines</span>
-          <span><b>Email reminders</b> before anything lapses</span>
+          <span><b>Email reminders</b> before tracked dates lapse</span>
           <span><b>Unlimited properties</b> on one simple plan</span>
         </div>
 
@@ -124,7 +111,7 @@ export default function Landing() {
           <div>
             <Faq question="Can other people see my properties?">No. Your data and documents are private to your account.</Faq>
             <Faq question="Is this legal advice?">No. It is a deadline ledger designed to help you stay organised.</Faq>
-            <Faq question="What happens if I cancel?">You keep access until your paid period ends and your ledger remains intact if you return.</Faq>
+            <Faq question="What happens if I cancel?">You keep access until your paid period ends and your ledger is retained so you can return. You can request deletion through support.</Faq>
           </div>
         </section>
 

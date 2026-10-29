@@ -10,13 +10,8 @@ const FEATURES = [
 ];
 
 export default function FeatureLanding({ page }) {
-  const faqLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: page.faqs.map(([name, text]) => ({ "@type": "Question", name, acceptedAnswer: { "@type": "Answer", text } })),
-  };
+
   return <PublicChrome>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
     <Breadcrumbs items={[{ label: page.title, href: page.path }]} />
     <section className="marketing-hero">
       <div><p className="eyebrow">{page.eyebrow}</p><h1>{page.title}</h1><p className="marketing-lead">{page.lead}</p><div className="home-v2-hero-actions"><Link href="/login?trial=1" className="btn brass">Start your 14-day free trial</Link><Link href="/pricing" className="home-v2-sign-in">See pricing</Link></div><p className="home-v2-note">£5.99/month or £59.90/year · unlimited properties · cancel any time</p></div>

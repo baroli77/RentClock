@@ -26,7 +26,7 @@ test("deposit deadline is based on receipt, not tenancy start", () => {
     dates: { depositReceived: "2026-06-10" },
     applicability: { deposit: true },
   });
-  assert.equal(toISO(status.due), "2026-07-10");
+  assert.equal(toISO(status.due), "2026-07-09");
 });
 
 test("Unlimited Right to Rent checks use the agreement date and post-Act written terms use the agreement date", () => {

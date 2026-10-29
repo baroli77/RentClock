@@ -914,3 +914,27 @@ input[type="checkbox"] {
   .calendar-card li { grid-template-columns: 1fr; }
   .marketing-more > div, .home-feature-links .home-v2-steps { grid-template-columns: 1fr; }
 }
+
+/* October 2026 audit: keep the main offer compact and results actionable. */
+.home-v2 h1 { font-size: clamp(40px, 5vw, 60px); }
+.home-v2-example-reminder { margin: 14px 0 0; padding-top: 15px; border-top: 1px solid #ffffff2d; color: #90e2c9; font-weight: 600; }
+.home-v2-example-reminder small { color: #ced8df; font-weight: 400; }
+.calculator select { width: 100%; max-width: 420px; min-height: 44px; padding: 10px; font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 6px; }
+.calculator-track { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
+.calculator-track p { font-size: 14px; }
+.calculator-track small { display: block; margin-top: 10px; color: var(--grey); font-size: 12px; }
+.calculator [aria-invalid="true"] { border-color: #b42318; }
+.calculator [role="alert"] { color: #b42318; }
+@media (max-width: 480px) {
+  .calculator, .calendar-card { padding: 18px; }
+  .calculator input, .calculator select { min-width: 0; max-width: 100%; }
+  .calculator-track .btn { white-space: normal; text-align: center; }
+  .home-v2-ledger-top { gap: 12px; flex-wrap: wrap; }
+  .home-v2-deadline { grid-template-columns: minmax(0, 1fr) auto; }
+}
+@media print {
+  .public-head, .public-header, .masthead, .foot, .calendar-actions, .calculator-track { display: none !important; }
+  .tool-page { margin: 0; max-width: none; }
+  .calendar-card { padding: 0; border: 0; box-shadow: none; }
+  .calendar-card li { break-inside: avoid; }
+}

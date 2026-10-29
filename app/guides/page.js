@@ -58,8 +58,8 @@ export default async function GuidesIndex() {
       <section className="final-cta hero">
         <h2 className="final-h2">Stop tracking this in your head.</h2>
         <p className="landing-sub">
-          RentClock turns every rule above into a countdown and emails you before
-          anything lapses. £5.99/month, unlimited properties.
+          RentClock helps you record core safety dates and selected tenancy tasks,
+          store supporting documents and receive reminders for tracked deadlines. £5.99/month, unlimited properties.
         </p>
         <Link href="/login?trial=1" className="btn brass">Start your free trial</Link>
       </section>

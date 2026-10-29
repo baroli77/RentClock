@@ -14,19 +14,20 @@ export const revalidate = 3600;
 export const dynamicParams = true;
 
 const CLUSTERS = [
-  { guides: ["prs-database-registration", "landlord-compliance-checklist-2026", "landlord-compliance-documents-checklist"], tool: "/tools/landlord-compliance-calendar-2026", feature: "/landlord-compliance-software" },
-  { guides: ["landlord-compliance-checklist-2026", "landlord-compliance-documents-checklist", "smoke-carbon-monoxide-alarm-rules-landlords"], tool: "/tools/landlord-compliance-calendar-2026", feature: "/landlord-compliance-software" },
+  { guides: ["prs-database-registration", "landlord-compliance-checklist-2026", "landlord-compliance-documents-checklist"], tool: "/tools/rental-property-registration-deadline-calculator", feature: "/landlord-compliance-software" },
+  { guides: ["landlord-compliance-checklist-2026", "landlord-compliance-documents-checklist", "smoke-carbon-monoxide-alarm-rules-landlords"], tool: "/tools/landlord-compliance-calendar-2027", feature: "/landlord-compliance-software" },
   { guides: ["gas-safety-certificate-renewal-rules", "gas-safety-record-copy-to-tenants", "landlord-compliance-checklist-2026"], tool: "/tools/gas-safety-renewal-calculator", feature: "/gas-safety-certificate-reminders" },
   { guides: ["eicr-landlord-remedial-deadlines", "eicr-copy-deadlines-landlords", "landlord-compliance-documents-checklist"], tool: "/tools/eicr-next-inspection-calculator", feature: "/eicr-reminders" },
   { guides: ["tenancy-deposit-protection-30-day-deadline", "landlord-compliance-documents-checklist", "landlord-compliance-checklist-2026"], tool: "/tools/deposit-protection-deadline-calculator", feature: "/landlord-compliance-software" },
-  { guides: ["section-8-notice-landlords-2026", "renters-rights-act-2026-landlord-timeline", "tenancy-deposit-protection-30-day-deadline"], tool: "/tools/landlord-compliance-calendar-2026", feature: "/landlord-compliance-software" },
+  { guides: ["section-8-notice-landlords-2026", "renters-rights-act-2026-landlord-timeline", "tenancy-deposit-protection-30-day-deadline"], tool: "/tools/landlord-compliance-calendar-2027", feature: "/landlord-compliance-software" },
   { guides: ["how-to-carry-out-uk-right-to-rent-checks", "tenant-pet-request-landlord-28-days"], tool: "/tools/right-to-rent-follow-up-calculator", feature: "/landlord-compliance-software" },
-  { guides: ["epc-rules-landlords-2030", "epc-exemptions-landlords", "landlord-compliance-documents-checklist"], tool: "/tools/landlord-compliance-calendar-2026", feature: "/landlord-document-storage" },
-  { guides: ["smoke-carbon-monoxide-alarm-rules-landlords", "landlord-compliance-checklist-2026", "landlord-compliance-documents-checklist"], tool: "/tools/landlord-compliance-calendar-2026", feature: "/landlord-compliance-software" },
-  { guides: ["renters-rights-act-2026-landlord-timeline", "landlord-rent-increase-rules-2026", "rent-bidding-ban-landlords-2026", "tenant-pet-request-landlord-28-days"], tool: "/tools/landlord-compliance-calendar-2026", feature: "/landlord-compliance-software" },
+  { guides: ["epc-rules-landlords-2030", "epc-exemptions-landlords", "landlord-compliance-documents-checklist"], tool: "/tools/landlord-compliance-calendar-2027", feature: "/landlord-document-storage" },
+  { guides: ["smoke-carbon-monoxide-alarm-rules-landlords", "landlord-compliance-checklist-2026", "landlord-compliance-documents-checklist"], tool: "/tools/landlord-compliance-calendar-2027", feature: "/landlord-compliance-software" },
+  { guides: ["renters-rights-act-2026-landlord-timeline", "landlord-rent-increase-rules-2026", "rent-bidding-ban-landlords-2026", "tenant-pet-request-landlord-28-days"], tool: "/tools/landlord-compliance-calendar-2027", feature: "/landlord-compliance-software" },
 ];
 
 const CALCULATOR_TYPES = {
+  "prs-database-registration": "registration",
   "gas-safety-certificate-renewal-rules": "gas",
   "eicr-landlord-remedial-deadlines": "eicr",
   "tenancy-deposit-protection-30-day-deadline": "deposit",
@@ -34,6 +35,7 @@ const CALCULATOR_TYPES = {
 };
 
 const CALCULATOR_AFTER = {
+  "prs-database-registration": "Regional registration timetable",
   "gas-safety-certificate-renewal-rules": "You can usually arrange the check up to two months early",
   "eicr-landlord-remedial-deadlines": "Inspection at least every five years — or sooner",
   "tenancy-deposit-protection-30-day-deadline": "Count from the date the deposit is received",
@@ -50,8 +52,8 @@ function insertCalculatorAfter(guide, section, index) {
 function GuideCalculator({ type }) {
   return (
     <aside className="article-calculator card" aria-labelledby="deadline-calculator">
-      <h2 id="deadline-calculator">Calculate the date from the source document</h2>
-      <p>Enter the date on the certificate, report or official check. This is a planning aid, not a decision about whether the rule applies.</p>
+      <h2 id="deadline-calculator">{type === "registration" ? "Find your regional registration deadline" : "Calculate the date from the source document"}</h2>
+      <p>{type === "registration" ? "Choose the region where the property is located. Check the official scope and exemptions separately." : "Enter the date on the certificate, report or official check. This is a planning aid, not a decision about whether the rule applies."}</p>
       <DeadlineTool type={type} />
     </aside>
   );
@@ -111,7 +113,7 @@ function clusterLinks(catalog, guide) {
     "/landlord-compliance-software": "Landlord compliance software",
     "/landlord-document-storage": "Landlord document storage",
   };
-  return [...guides, { href: cluster.tool, label: "Use the free deadline calculator" }, { href: cluster.feature, label: featureLabels[cluster.feature] }];
+  return [...guides, { href: cluster.tool, label: cluster.tool.includes("calendar") ? "View the 2027 compliance calendar" : "Use the free deadline calculator" }, { href: cluster.feature, label: featureLabels[cluster.feature] }];
 }
 
 export async function generateMetadata({ params }) {
@@ -153,20 +155,10 @@ export default async function GuidePage({ params }) {
     publisher: { "@type": "Organization", name: "RentClock", url: SITE },
     mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE}/guides/${guide.slug}` },
   };
-  const faqLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: guide.faqs.map((faq) => ({
-      "@type": "Question",
-      name: faq.question,
-      acceptedAnswer: { "@type": "Answer", text: faq.answer },
-    })),
-  };
 
   return (
     <PublicChrome>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }} />
-      {guide.faqs.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />}
       <article className="article">
         <Breadcrumbs items={[{ label: "Guides", href: "/guides" }, { label: guide.title, href: `/guides/${guide.slug}` }]} />
         <div className="eyebrow">{guide.readMins} min read</div>
@@ -239,8 +231,8 @@ export default async function GuidePage({ params }) {
         </section>}
 
         <aside className="article-cta card">
-          <h3>RentClock tracks all of this for you</h3>
-          <p>Add your properties and RentClock builds the checklist, counts down every renewal, and emails you before anything lapses.</p>
+          <h3>Keep the relevant dates and documents together</h3>
+          <p>Record core safety dates and selected tenancy tasks in RentClock, keep supporting documents beside each property, and receive reminders for tracked deadlines. Local and event-based duties still need separate checks.</p>
           <Link href="/login?trial=1" className="btn brass">Start your free trial</Link>
         </aside>
         <p className="article-disclaimer">This guide is general information, not legal advice. We review time-sensitive claims against official sources; see our <Link href="/about">editorial policy</Link>. Always check GOV.UK or a professional for your situation.</p>
