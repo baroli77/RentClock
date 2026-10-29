@@ -113,3 +113,15 @@ sitemap to Google Search Console once live.
 - `lib/registration-guide.js` and `lib/right-to-rent-guide.js` contain the reviewed October 2026 guidance. Static guides take precedence over database copies in articles, listings and the sitemap.
 - Deposit protection counts receipt as day one: the date offset is **29**, not 30, in the public calculator and shared dashboard/reminder rules. Regression tests cover both implementations and UK clock changes.
 - After material content changes, update the visible review date, structured data and sitemap together. Do not advance dates for cosmetic changes.
+
+### Product workflow release (October 2026)
+
+- `/demo` uses fictional records and browser-page state. It previews the production email template without sending messages.
+- Guided setup saves after each step and resumes unfinished properties. Certificate upload can be skipped.
+- `lib/registration-workflow.js` shares completion, common annual renewal and government-update dates across the dashboard, reminder job and exports. Always use actual dates from GOV.UK; the service does not submit registrations.
+- CSV imports validate before writing, skip duplicate addresses and use an atomic, idempotent batch RPC. A ZIP property pack includes original documents and a printable HTML summary (50 files / 30 MB maximum). Export remains available after a subscription lapses.
+- Apply `supabase/migrations/20261029204200_product_workflow.sql` before deploying this release. The tables have owner-scoped reads and service-only ingestion / RPC writes.
+- Configure `RESEND_DELIVERY_WEBHOOK_SECRET` for `/api/email-events`. Subscribe to `email.sent`, `email.delivered`, `email.delivery_delayed`, `email.bounced`, `email.failed`, `email.suppressed` and `email.complained`. Keep the existing inbound support webhook separate. Verification uses the raw request body and Svix signature headers; failures return a retryable status.
+- Delivery history starts at this release. Delivered means receiving mail-server acceptance, not inbox placement or a read receipt.
+- `/growth` shows activation milestones for the new-account cohort beginning at the migration install time. Milestones are deduplicated and mirrored to MarketingMan as `custom` events; pending forwarding retries during the daily reminder job.
+- Run `npm run check`. The rollback-only integration script in `test/product-workflow.integration.sql` checks batch imports, event ordering, duplicate events and ownership policies without retaining fixture records.

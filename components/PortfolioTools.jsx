@@ -20,7 +20,7 @@ export default function PortfolioTools({properties,canEdit,onImported,beforeExpo
    let result;
    if(demo) result={properties:preview.properties.map((p,i)=>({...p,id:`demo-import-${i}-${Date.now()}`})),skipped:preview.skipped.length};
    else {const res=await fetch('/api/properties/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({csv,batchId})});result=await res.json();if(!res.ok)throw new Error(result.error || 'Import failed');}
-   onImported(result.properties);setMessage(`${result.properties.length} properties imported. ${result.skipped} duplicate rows skipped.`);setPreview(null);setCSV('');
+   onImported(result.properties);setMessage(`${result.properties.length} ${result.properties.length===1?'property':'properties'} imported. ${result.skipped} duplicate rows skipped.`);setPreview(null);setCSV('');
   }catch(e){setError(e.message);}finally{setBusy(false);}
  }
  async function exportPack() {
@@ -53,7 +53,7 @@ export default function PortfolioTools({properties,canEdit,onImported,beforeExpo
   {preview && <div className="import-preview" role="region" aria-label="CSV import preview"><h3>Review before importing</h3><p>{preview.properties.length} new properties · {preview.skipped.length} duplicate rows skipped · {preview.errors.length} errors</p>
    {preview.errors.length>0 && <ul className="trial-error">{preview.errors.map(e=><li key={e}>{e}</li>)}</ul>}
    {preview.properties.length>0 && <div className="table-scroll"><table><thead><tr><th>Name</th><th>Address</th><th>Gas last done</th><th>EPC band</th></tr></thead><tbody>{preview.properties.map((p,i)=><tr key={i}><td>{p.name}</td><td>{p.address}</td><td>{p.dates.gas || 'Not recorded'}</td><td>{p.epcBand || 'Not recorded'}</td></tr>)}</tbody></table></div>}
-   <div className="workflow-actions"><button className="btn primary sm" disabled={busy || preview.errors.length>0 || !preview.properties.length} onClick={confirmImport}>{busy?'Importing…':`Import ${preview.properties.length} properties`}</button><button className="btn ghost sm" disabled={busy} onClick={()=>{setPreview(null);setCSV('');}}>Cancel import</button></div>
+   <div className="workflow-actions"><button className="btn primary sm" disabled={busy || preview.errors.length>0 || !preview.properties.length} onClick={confirmImport}>{busy?'Importing…':`Import ${preview.properties.length} ${preview.properties.length===1?'property':'properties'}`}</button><button className="btn ghost sm" disabled={busy} onClick={()=>{setPreview(null);setCSV('');}}>Cancel import</button></div>
   </div>}
   {error && <p className="trial-error" role="alert">{error}</p>}{message && <p role="status">{message}</p>}
  </section>;

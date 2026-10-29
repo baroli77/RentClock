@@ -847,7 +847,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
     let overdue = all.filter((st) => st.code === "overdue").length;
     const soon = all.filter((st) => st.code === "soon").length;
     if (p.applicability?.epcExempt !== true && (p.epcBand === "F" || p.epcBand === "G")) overdue += 1;
-    return { overdue, soon };
+    return { overdue, soon, missing: all.filter(st => st.code === "missing").length };
   };
 
   const signOut = async () => {
@@ -1006,7 +1006,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
       </header>
 
       {demo && <section className="demo-banner"><div><b>Interactive demo — fictional properties</b><p>Changes stay in this browser page. No account, card or real email sends.</p></div><div className="workflow-actions"><button className="btn ghost sm" onClick={() => setDemoReminderOpen(true)}>Preview a reminder email</button><button className="btn ghost sm" onClick={() => window.location.reload()}>Reset demo</button></div></section>}
-      {demoReminderOpen && <div className="demo-modal" role="dialog" aria-modal="true" aria-labelledby="demo-email-title"><div><div className="workflow-actions"><h2 id="demo-email-title">Example reminder email</h2><button className="btn ghost" autoFocus onClick={() => setDemoReminderOpen(false)}>Close preview</button></div><iframe title="Fictional RentClock reminder email" sandbox="" tabIndex={-1} srcDoc={reminderHTML}/></div></div>}
+      {demoReminderOpen && <div className="demo-modal" role="dialog" aria-modal="true" aria-labelledby="demo-email-title"><div><div className="workflow-actions"><h2 id="demo-email-title">Example reminder email</h2><button className="btn ghost" onClick={() => setDemoReminderOpen(false)}>Close preview</button></div><iframe title="Fictional RentClock reminder email" sandbox="" tabIndex={-1} srcDoc={reminderHTML}/></div></div>}
 
       {!access && (
         <section className="card paywall">
@@ -1097,7 +1097,7 @@ export default function RentClockDashboard({ initialProperties, email, access, b
                       ? `${a.overdue} overdue`
                       : a.soon > 0
                       ? `${a.soon} due within 60 days`
-                      : "All compliant"
+                      : a.missing ? `${a.missing} records missing` : "No current dated alerts; review other duties"
                   }
                 >
                   <span className="side-name">{p.name}</span>
