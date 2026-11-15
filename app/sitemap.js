@@ -19,7 +19,7 @@ export default async function sitemap() {
     { url: `${SITE}/guides`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${SITE}/tools`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE}/about`, lastModified: "2026-10-29", changeFrequency: "yearly", priority: 0.4 },
-    { url: `${SITE}/privacy`, lastModified: "2026-10-29", changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE}/privacy`, lastModified: "2026-11-15", changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE}/terms`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE}/contact`, changeFrequency: "yearly", priority: 0.3 },
     ...["landlord-compliance-software", "gas-safety-certificate-reminders", "eicr-reminders", "landlord-document-storage"].map((slug) => ({ url: `${SITE}/${slug}`, changeFrequency: "monthly", priority: 0.8 })),

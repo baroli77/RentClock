@@ -576,7 +576,7 @@ function PropertyCard({ prop, onUpdate, onRemove, renewalDue, onSaveRenewal }) {
                         )}
                         {item.key === "rtr" && (
                           <div>
-                            <p className="row-note">For a time-limited right to rent, the initial check must normally be carried out no earlier than 28 calendar days before the tenancy start date. An unlimited-right check can be completed at any time before the agreement is entered into.</p>
+                            <p className="row-note">For a time-limited right to rent, the standard check window is the 28 calendar days ending the day before the agreement is entered into. Add the “Agreed / signed” date to calculate it. An unlimited-right check can be completed before the agreement is entered into. Check Home Office guidance for exceptions, including some conditional agreements for occupiers overseas.</p>
                             {occupiers.map((occupier, index) => (
                               <div className="rtr-record" key={occupier.id || index}>
                                 <label><span className="lbl">Adult occupier</span><input value={occupier.name || ""} onChange={(e) => updateOccupier(occupier.id, { name: e.target.value })} placeholder="Name" /></label>

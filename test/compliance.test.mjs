@@ -35,15 +35,16 @@ test("Unlimited Right to Rent checks use the agreement date and post-Act written
   assert.equal(toISO(oneoffStatus(item("wsot"), false, property).due), "2026-07-01");
 });
 
-test("Time-limited Right to Rent checks use the tenancy start date and expose their 28-day check window", () => {
+test("Time-limited Right to Rent window ends the day before the agreement, even when move-in is later", () => {
   const property = {
     agreementDate: "2026-07-01",
     tenancyStart: "2026-07-20",
     rightToRent: { occupiers: [{ id: "a", rightType: "time-limited" }] },
   };
   const status = rightToRentInitialStatus(property, false);
-  assert.equal(toISO(status.due), "2026-07-20");
-  assert.equal(toISO(status.windowOpens), "2026-06-22");
+  assert.equal(toISO(status.due), "2026-06-30");
+  assert.equal(toISO(status.windowOpens), "2026-06-03");
+  assert.equal(rightToRentInitialStatus({ ...property, agreementDate: "" }, false).due, null);
 });
 
 test("legacy How to Rent is opt-in and pre-Act verbal terms use 31 May deadline", () => {

@@ -13,7 +13,7 @@ export default function PrivacyPage() {
       <section className="legal-page">
         <div className="eyebrow">Legal</div>
         <h1>Privacy Policy</h1>
-        <p className="legal-updated">Last updated: 29 October 2026</p>
+        <p className="legal-updated">Last updated: 15 November 2026</p>
         <p>RentClock is operated by Oliver Barton. This policy explains how we handle personal information when you use RentClock.</p>
 
         <h2>Information we collect</h2>
@@ -43,7 +43,11 @@ export default function PrivacyPage() {
         <p>Transfer arrangements depend on the provider and applicable terms. Provider data-processing terms include contractual protections for international transfers, including Standard Contractual Clauses with UK-specific provisions where applicable. You can review the published terms for <a href="https://supabase.com/legal/dpa">Supabase</a>, <a href="https://stripe.com/legal/dpa">Stripe</a>, <a href="https://resend.com/legal/dpa">Resend</a> and <a href="https://vercel.com/legal/dpa">Vercel</a>. Contact support to ask about the locations and safeguards relevant to your information or to request a copy of the applicable safeguards.</p>
 
         <h2>Your rights</h2>
-        <p>Depending on where you live, you may have rights to access, correct, erase, restrict or object to the processing of your personal information, and to ask for a copy of it. To make a request, email <a href="mailto:support@rentclock.com">support@rentclock.com</a>. You can complain to the <a href="https://ico.org.uk/make-a-complaint/">UK Information Commissioner&rsquo;s Office</a>.</p>
+        <p>Depending on where you live, you may have rights to access, correct, erase, restrict or object to the processing of your personal information, and to ask for a copy of it. To make a request, email <a href="mailto:support@rentclock.com">support@rentclock.com</a>.</p>
+
+        <h2>Data protection complaints</h2>
+        <p>To complain about how RentClock handles your personal information, email <a href="mailto:support@rentclock.com?subject=Data%20protection%20complaint">support@rentclock.com</a>. Tell us what happened and what you would like us to do. You do not need a RentClock account to make a complaint.</p>
+        <p>UK data protection law requires us to acknowledge your complaint within 30 days, take appropriate steps to investigate, keep you informed and tell you the outcome without undue delay. You can also complain to the <a href="https://ico.org.uk/make-a-complaint/">UK Information Commissioner&rsquo;s Office</a>.</p>
 
         <h2>Your right to object</h2>
         <p>You can object to processing based on legitimate interests, including our usage analysis. Email support with your objection so we can assess it and explain the outcome. Essential processing needed to provide the service or meet legal obligations may still be required.</p>
